@@ -7,13 +7,65 @@ neural network or anatomical names.
 
 ## Setup
 
-Tested with Python 3.13 on macOS. Use Python 3.13 on Linux for the evaluation
-environment too. Create a virtual environment, then install the pinned packages:
+This is a terminal program. Install Git and Python 3.13, then clone the
+repository and install its dependencies. On macOS or Linux:
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
+git clone --branch main https://github.com/Toastyybread1/toralis-challenge.git
+cd toralis-challenge
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
+
+On Windows PowerShell, after cloning and entering the repository:
+
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Use `.\.venv\Scripts\python.exe` in place of `python` in the commands below
+on Windows, or activate the environment with `.\.venv\Scripts\Activate.ps1`.
+The pipeline has been tested on macOS; Linux is the competition target.
+
+For an existing checkout, update it instead of cloning another copy. Commit
+your own edits before switching branches:
+
+```bash
+git switch main
+git pull --ff-only origin main
+```
+
+Run all commands from the repository folder, where `run.py` is located. On
+macOS/Linux, activate the environment again with `source .venv/bin/activate`
+each time you open a new terminal. An editor's integrated terminal works too.
+
+The CT dataset is separate from the code and is not included in a Git clone.
+Keep the scan files locally and pass their paths to the command below.
+
+### First Prediction
+
+With `image.nii.gz` and `aorta_mask.nii.gz` in the repository folder, the exact
+competition command is:
+
+```bash
+python run.py --image image.nii.gz --aorta-mask aorta_mask.nii.gz --output prediction.json
+```
+
+`--image` points to the CT scan, `--aorta-mask` points to the matching aorta-only
+mask, and `--output` selects the JSON file to create. `aorta_mask.nii.gz` is one
+filename; do not put a space, newline, or backslash before the underscore.
+Replace the example filenames with the actual paths; quote paths containing
+spaces. Both `.nii` and `.nii.gz` are supported, so no renaming is required.
+
+The command runs the complete detector and saves `prediction.json` in the
+current folder. It contains one entry per predicted daughter branch, including
+its ID, parent ID, ostium, seed, radius, and direction. Positions and radius are
+in physical millimetres; direction is a unit vector. No separate inspection
+step is required.
+
+### Offline Setup
 
 Inference needs no internet, model download, API, or GPU. Install dependencies
 before entering the offline environment. For offline installation, prepare
