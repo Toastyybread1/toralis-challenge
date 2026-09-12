@@ -26,6 +26,12 @@ def detect_candidates(roi: PreparedCase, config: Config):
     vesselness = np.clip(vesselness / scale, 0, 1).astype(np.float32)
     lumen = roi.shell & ((smooth >= high) | ((smooth >= low) & (vesselness >= 0.08)))
     lumen &= roi.ct <= upper
+    # Retain a permissive mask only for a local retry after normal tracing
+    # fails; primary candidate detection remains conservative.
+    fallback_low = max(40.0, median - 3.5 * spread)
+    fallback_lumen = roi.shell & (smooth >= fallback_low) & (roi.ct <= upper)
+    fallback_lumen &= (vesselness >= 0.025) | (smooth >= median - 1.25 * spread)
+    fallback_lumen |= lumen
     # Radius uses the lumen union, so the aortic wall is not an artificial lumen edge.
     radius = ndi.distance_transform_edt(lumen | roi.aorta, sampling=spacing).astype(np.float32)
     labels, _ = ndi.label(lumen, structure=np.ones((3, 3, 3)))
@@ -69,10 +75,11 @@ def detect_candidates(roi: PreparedCase, config: Config):
         ostium = (line[crossing - 1] + line[crossing]) / 2
         candidates.append(CandidateBranch(coords, root, ostium, int(labels[tuple(root)]),
                                           float(np.mean(vesselness[tuple(coords.T)]))))
+    fallback_radius = ndi.distance_transform_edt(fallback_lumen | roi.aorta, sampling=spacing).astype(np.float32)
     return candidates, DetectionContext(lumen, vesselness, radius, labels, {
         "aorta_median": median, "aorta_robust_std": spread,
         "low_threshold": low, "high_threshold": high, "upper_intensity_limit": upper,
         "contact_components": count, "candidate_count": len(candidates),
         "rejected_contacts": rejected, "working_spacing_mm": spacing,
-        "roi_shape_zyx": list(roi.aorta.shape),
-    })
+        "roi_shape_zyx": list(roi.aorta.shape), "fallback_low_threshold": fallback_low,
+    }, fallback_lumen, fallback_radius)
