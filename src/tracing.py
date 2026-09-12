@@ -38,6 +38,90 @@ def _smooth_path(path, spacing_mm):
     return smoothed
 
 
+def _path_confidence(candidate, path, radius, vesselness, roi, config):
+    """Return a transparent 0--1 confidence and its constituent evidence."""
+    length = float(np.linalg.norm(np.diff(path, axis=0), axis=1).sum())
+    sample_zyx = np.array([roi.image.TransformPhysicalPointToContinuousIndex(tuple(p))[::-1]
+                           for p in path])
+    path_vesselness = ndi.map_coordinates(vesselness, sample_zyx.T, order=1, mode="nearest")
+    path_radius = ndi.map_coordinates(radius, sample_zyx.T, order=1, mode="nearest")
+    radius_cv = float(np.std(path_radius) / max(np.mean(path_radius), 1e-6))
+    outward = physical(roi.image, candidate.root_zyx) - path[0]
+    outward /= max(np.linalg.norm(outward), 1e-6)
+    direction = path[min(len(path) - 1, 2)] - path[0]
+    direction /= max(np.linalg.norm(direction), 1e-6)
+    evidence = {
+        "contact": float(np.clip(candidate.score / 0.12, 0, 1)),
+        "vesselness": float(np.clip(np.mean(path_vesselness), 0, 1)),
+        "path_length": float(np.clip(length / config.trace_length_mm, 0, 1)),
+        "radius_stability": float(np.clip(1 - 2 * radius_cv, 0, 1)),
+        "outward_direction": float(np.clip((direction @ outward + 1) / 2, 0, 1)),
+    }
+    confidence = (0.20 * evidence["contact"] + 0.30 * evidence["vesselness"]
+                  + 0.25 * evidence["path_length"] + 0.15 * evidence["radius_stability"]
+                  + 0.10 * evidence["outward_direction"])
+    return float(confidence), evidence
+
+
+def _adaptive_fallback(candidate, roi, context, config, contact_id):
+    """Retry a failed/weak trace in a small, aorta-anchored permissive patch."""
+    if context.fallback_lumen is None or context.fallback_radius is None:
+        return None, "fallback_not_available", None
+    grid = np.indices(roi.ct.shape, sparse=True)
+    delta2 = sum(((grid[axis] - candidate.ostium_zyx[axis]) * roi.spacing_mm) ** 2
+                 for axis in range(3))
+    local = context.fallback_lumen & (delta2 <= config.fallback_radius_mm ** 2)
+    labels, _ = ndi.label(local, structure=np.ones((3, 3, 3)))
+    root = tuple(np.rint(candidate.root_zyx).astype(int))
+    component_id = labels[root]
+    if component_id == 0:
+        return None, "fallback_root_not_in_lumen", None
+    component = labels == component_id
+    skeleton = skeletonize(component | roi.aorta, method="lee")
+    skeleton &= ~roi.aorta & (roi.distance >= roi.spacing_mm)
+    graph, flat = pixel_graph(skeleton, connectivity=3, spacing=[roi.spacing_mm] * 3)
+    coords = np.column_stack(np.unravel_index(flat, skeleton.shape))
+    if not len(coords):
+        return None, "fallback_empty_skeleton", None
+    root_index = int(np.argmin(np.linalg.norm(coords - candidate.root_zyx, axis=1)))
+    if np.linalg.norm(coords[root_index] - candidate.root_zyx) * roi.spacing_mm > 3.0:
+        return None, "fallback_disconnected_centerline", None
+    distances, predecessors = dijkstra(graph, directed=False, indices=root_index,
+                                       return_predecessors=True, limit=config.trace_length_mm + 3)
+    targets = np.flatnonzero(np.isfinite(distances) & (distances >= config.min_length_mm))
+    if not len(targets):
+        return None, "fallback_short_path", None
+    best = None
+    for target in targets:
+        node_path = _path_to_root(predecessors, int(target))
+        path_zyx = np.vstack([candidate.ostium_zyx, candidate.root_zyx, coords[node_path]])
+        path = _smooth_path(physical(roi.image, path_zyx), roi.spacing_mm)
+        length = float(np.linalg.norm(np.diff(path, axis=0), axis=1).sum())
+        if length < config.min_length_mm:
+            continue
+        if length > config.trace_length_mm:
+            cumulative = np.r_[0, np.cumsum(np.linalg.norm(np.diff(path, axis=0), axis=1))]
+            path = np.vstack([path[cumulative < config.trace_length_mm],
+                              point_along_path(path, config.trace_length_mm)])
+        seed = point_along_path(path, config.min_length_mm)
+        seed_zyx = np.array(roi.image.TransformPhysicalPointToContinuousIndex(tuple(seed)))[::-1]
+        if float(ndi.map_coordinates(roi.distance, seed_zyx[:, None], order=1)[0]) < 2.5:
+            continue
+        radius = float(ndi.map_coordinates(context.fallback_radius, seed_zyx[:, None], order=1)[0])
+        if not config.min_radius_mm <= radius <= config.max_radius_mm:
+            continue
+        confidence, evidence = _path_confidence(candidate, path, context.fallback_radius,
+                                                context.vesselness, roi, config)
+        direction = seed - path[0]
+        direction /= np.linalg.norm(direction)
+        branch = DetectedBranch(path[0], seed, radius, direction, path, confidence, contact_id)
+        if best is None or branch.score > best[0].score:
+            best = (branch, evidence)
+    if best is None:
+        return None, "fallback_no_valid_path", None
+    return best[0], "fallback_accepted", best[1]
+
+
 def analyze_candidates(candidates, roi, context, config):
     # Include the aorta during thinning to avoid artificial junctions on cut tube ends.
     skeleton = skeletonize(context.lumen | roi.aorta, method="lee")
@@ -49,8 +133,6 @@ def analyze_candidates(candidates, roi, context, config):
         return []
     node_components = context.labels[tuple(coords.T)]
     node_wall_distance = roi.distance[tuple(coords.T)]
-    node_radius = context.radius[tuple(coords.T)]
-    node_vesselness = context.vesselness[tuple(coords.T)]
     branches = []
     rejections = {}
     candidate_reports = []
@@ -146,12 +228,30 @@ def analyze_candidates(candidates, roi, context, config):
                                               fine_zyx.T, order=0, mode="constant")):
                 reject_target("path_leaves_lumen")
                 continue
-            score = float(np.mean(node_vesselness[selection[node_path]]) +
-                          0.1 * min(length, 10) + 0.05 * np.mean(node_radius[selection[node_path]]))
-            if best is None or score > best.score:
+            confidence, evidence = _path_confidence(candidate, path, context.radius,
+                                                    context.vesselness, roi, config)
+            if best is None or confidence > best.score:
                 direction = seed - path[0]
                 direction /= np.linalg.norm(direction)
-                best = DetectedBranch(path[0], seed, radius, direction, path, score, contact_id)
+                best = DetectedBranch(path[0], seed, radius, direction, path, confidence, contact_id)
+                report["confidence"] = confidence
+                report["confidence_evidence"] = evidence
+        fallback_needed = best is None or best.score < config.confidence_fallback_threshold
+        if fallback_needed:
+            fallback, fallback_reason, fallback_evidence = _adaptive_fallback(
+                candidate, roi, context, config, contact_id
+            )
+            report["fallback"] = {"attempted": True, "result": fallback_reason}
+            if fallback is not None:
+                report["fallback"]["confidence"] = fallback.score
+                report["fallback"]["confidence_evidence"] = fallback_evidence
+                if best is None or fallback.score > best.score:
+                    best = fallback
+                    report["confidence"] = fallback.score
+                    report["confidence_evidence"] = fallback_evidence
+                    report["fallback"]["selected"] = True
+        else:
+            report["fallback"] = {"attempted": False, "result": "primary_confidence_sufficient"}
         if best is None:
             reject("short_split_nonoutward_or_invalid_radius")
         else:

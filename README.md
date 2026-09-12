@@ -99,6 +99,11 @@ provided dataset, so accuracy cannot currently be reported.
    transform, and normalize the ostium-to-seed direction.
 6. Reject terminal-cap contacts, disconnected or wall-hugging paths, invalid
    radii, and near-identical duplicate origins/paths. Serialize validated JSON.
+7. Record interpretable candidate confidence evidence (contact quality,
+   vesselness, path length, radius stability, and outward direction) in
+   diagnostics. Low-confidence or failed primary traces receive a local,
+   permissive adaptive-tracing retry within 14 mm of their aortic-wall contact;
+   evaluator-facing JSON remains limited to accepted daughters.
 
 The working grid is capped at 3 million voxels by adapting resolution. Geometry
 is preserved through the ROI image, including direction and origin; fractional
