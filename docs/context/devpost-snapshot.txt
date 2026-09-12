@@ -1,0 +1,270 @@
+Devpost
+Join a hackathon 
+Host a hackathon 
+Resources 
+ 
+sulaimanqazi
+Notifications
+Loading...
+
+Battle of the Schools
+Overview
+My projects
+Participants (86)
+Resources
+Rules
+Project gallery
+Updates
+Discussions
+Battle of the Schools
+Battle of the Schools is a weekend hackathon between the University of Toronto and the University of Waterloo, hosted by UTMIST and WAT.ai.
+Find teammates
+Who can participate
+Above legal age of majority in country of residence
+Students only
+Team required: 2 to 4 members
+All countries/territories, excluding standard exceptions 
+View full rules
+Submissions open soon
+View schedule
+
+Sep 12 – 13, 2026
+Bahen Centre, University of Toronto
+Public
+$CAD 4,000 in cash	86 participants
+WAT.ai
+Health Machine Learning/AI Robotic Process Automation
+About the challenge
+Battle of the Schools is a weekend, in-person AI/ML hackathon between the University of Toronto and the University of Waterloo, hosted by UTMIST and WAT.ai. Over 200 student builders come together at the Bahen Centre for 24 hours of hacking, workshops, sponsor challenges, and a rivalry that only one campus gets to win.
+
+Every team chooses to represent either U of T or Waterloo, and every result feeds into that school's cumulative score. Placing first, second or third in a sponsor track earns points for your university, and side-quests (Cleanest Hacker Space, Best Slide Aesthetics, a Saturday night trivia challenge and surprise competitions) earn bonus points along the way. At the closing ceremony, the school with the highest overall score takes home the Maple Cup and keeps it until next year.
+
+ 
+Key details
+When: Saturday, September 12 to Sunday, September 13, 2026. Doors open 9:00 AM Saturday; hacking runs from 11:00 AM Saturday to 11:00 AM Sunday.
+Where: Bahen Centre for Information Technology, 40 St. George St, Toronto, ON (University of Toronto St. George campus).
+Who: Undergraduate and graduate students from any university. You do not need to be in computer science, and you do not need to have done a hackathon before. Every team picks U of T or Waterloo to represent.
+Teams: 1 to 4 people. Find teammates in the #find-a-team channel on Discord, then register your team with the team registration form. Registering your team is required to collect prizes.
+Cost: Free. Meals, snacks, cloud compute, model APIs, robotics hardware and sponsor mentors are provided all weekend.
+Register: Apply at utwat.ca/apply, register here on Devpost so you can submit your project, and join the Discord, where all event communications happen.
+Homepage: utwat.ca · Contact: utwat.bots@gmail.com
+School points
+Category	Item	Points	Description
+Track	1st Place	1000	Awarded per track (BracketBot, Steel.dev, Toralis Labs)
+Track	2nd Place	600	Awarded per track
+Track	3rd Place	400	Awarded per track
+Track	Honorable Mention	200	Standout track contenders (top 5 cutoff)
+Side-quest	Community Discord Choice	250 each	Top 3 most upvoted projects in the Discord showcase channel
+Side-quest	Best Slide Aesthetics	200	Top slide design, delivery and narrative structure
+Side-quest	Saturday Night Game/Trivia Challenge	200	Top 3 in the collegiate trivia bowl at 11 PM Saturday
+Side-quest	Best Team Name	100	Chosen by the Organizers!
+Tracks
+There are three tracks, each run and judged by the sponsor behind it. Projects are scored out of 100 on three pillars: technical excellence, creativity in solving problems or using modern AI tools, and overall "wow" factor in the live demo. You can enter more than one track if your project honestly fits.
+
+Robotics with BracketBot — Best Use of Next-Gen Robots. Founded in 2025, BracketBot is building the lowest-cost, highest-performance robot in the world. Build the most compelling thing you can on their brand-new generation of robots. Prizes: a Bambu Lab 3D printer for every member (up to 4) of the top three teams: P1S for 1st, A1 for 2nd, A1 mini for 3rd. Entering this track? Also fill in BracketBot's track form on top of the team registration form.
+
+Web Agents with Steel.dev. Founded in 2024, Steel.dev is building the browsing infrastructure for AI agents: an open-source browser API that lets you control fleets of browsers in the cloud. Build creative AI solutions powered by browser use. Prizes: $1,000 cash to the team + $600 in Steel Pro credits + $500 in OpenRouter credits (1st); gaming keyboards or headphones + $300 in Steel Pro credits (2nd); JBL speakers + $100 in Steel Pro credits (3rd). Plus two wildcards open to everyone: the Steel Computer Wildcard ($500 cash for Steel's favourite use of the beta product) and Most Unhinged Idea ($200 Uber Eats gift card).
+
+Healthcare with Toralis Labs — Most Unique Use of the Healthcare Dataset. Toralis Labs builds AI-powered software for vascular surgery, using a patient's medical scans to analyze blood vessels, measure anatomy and identify the best-fitting medical devices. Build the most creative way for Toralis to visualize and organize a set of healthcare data. Prizes, for each member of the team: Keychron V1 Max mechanical keyboard (1st), Logitech G305 wireless mouse (2nd), Anker 10,000 mAh power bank (3rd).
+
+See the Prizes section for the full breakdown.
+
+Schedule
+Saturday, September 12
+
+Time	What	Where
+9:00 – 10:00 AM	Registration opens, check in, get your lanyard	BA Atrium
+10:00 – 11:00 AM	Opening ceremony: tracks, rules and prizes announced. Don't skip it.	BA1160
+11:00 AM	Hacking begins. Workspaces, mentors and help desk open	See room guide below
+11:00 AM - 12:20 PM	Workshop with Cognition - Devin Outpost Demo	BA2135
+12:00 – 1:00 PM	Lunch	BA Atrium
+1:00 – 2:00 PM	Workshop with Steel.dev	BA2135
+2:30 – 3:30 PM	Workshop with BracketBot	BA2135
+4:00 – 4:30 PM	Accenture AMA	BA2135
+5:00 – 6:00 PM	Panel with Cognition: Cloud Agents & the Future of Autonomous Coding	BA2135
+6:00 – 7:00 PM	Dinner	BA Atrium / BA2135
+7:30 – 9:00 PM	Workshop with Toralis Labs	BA2135
+9:00 PM onwards	Surprise evening activities, including the trivia challenge at 11 PM	BA Atrium
+Overnight	Hacking continues	Workspaces
+Sunday, September 13
+
+Time	What	Where
+8:00 – 9:00 AM	Breakfast	BA Atrium
+11:00 AM	Hacking ends and submissions close on Devpost. Have your repo pushed and your demo working before this.	—
+12:30 – 2:30 PM	Judging. Stay with your project and be ready to demo	BA2165 / 2175 / 2185 / 2195
+1:00 PM	Lunch (judging continues)	BA Atrium
+4:00 – 4:30 PM	Finalist presentations	BA1160
+4:30 – 5:00 PM	Closing ceremony: track winners and the Maple Cup	BA1160
+5:00 PM	Clean up, clear your space, take everything with you	Everywhere
+Where things are
+Room	What's there
+BA Atrium	Check-in, all meals, and the help desk: your first stop for anything going wrong
+BA1160	Main stage: opening ceremony, finalist presentations, closing ceremony
+BA2135	All workshops, panels and AMAs
+BA2139	Mentor room. Stuck on something? Go here.
+BA2145, BA2155, BA2159	Hacking workspaces. Grab a table anywhere.
+BA2165, BA2175, BA2185, BA2195	Judging rooms (Sunday only). You'll be told which one and when.
+Sponsors
+Battle of the Schools 2026 is backed by Steel.dev, BracketBot, Toralis Labs, Cognition, Accenture, Shopify, Anthropic and Astral. Their engineers will be on site all weekend to mentor, run workshops and judge their tracks, and most of them are hiring.
+
+Organizers
+Hosted by UTMIST, the University of Toronto Machine Intelligence Student Team, and WAT.ai, the University of Waterloo's Artificial Intelligence Design Team: two of Canada's largest student AI communities.
+
+Requirements
+Deadline
+Submissions close on Devpost at 11:00 AM ET on Sunday, September 13, 2026, the moment hacking ends. Have your repo pushed and your demo working before then.
+
+What to submit
+Every team must submit one Devpost project that includes:
+
+Project name and tagline.
+Project description: the problem you tackled, what you built, how you built it, what challenged you, and what you would do next.
+Public code repository (GitHub, GitLab, etc.) containing all code written during the hackathon, with a README explaining how to run it.
+Demo video of up to 3 minutes showing the project working (YouTube, Vimeo or another public link). You will still demo live to the judges.
+Track selection: choose the track(s) you are entering (BracketBot Robotics, Steel.dev Web Agents, Toralis Labs Healthcare). You may enter more than one track if the project genuinely fits each brief.
+All team members added to the Devpost project.
+Presentation slides (optional, but your entry for the Best Slide Aesthetics side-quest, worth 200 school points).
+Before the deadline, make sure your team is also registered through the team registration form with the school you are representing. This is how we count your points toward the Maple Cup and how you collect prizes. BracketBot track teams must also complete BracketBot's track form.
+
+Want a shot at Community Discord Choice (250 points for each of the top 3)? Post your project in the showcase channel on Discord and rally the upvotes.
+
+Demoing
+Judging runs Sunday from 12:30 to 2:30 PM in BA2165 / 2175 / 2185 / 2195. A panel of sponsor judges will come to you in your judging room; room assignments and the schedule will be shared on Sunday. Stay with your project and be ready to demo. Projects are scored out of 100 on technical excellence, creativity, and the "wow" factor of the live demo.
+
+Finalists present on the main stage in BA1160 at 4:00 PM, and track winners and the Maple Cup are announced at the closing ceremony at 4:30 PM.
+
+Prizes
+$CAD 4,000+ in prizes+ other prizes
+The Maple Cup
+1 winner
+The trophy that only one campus gets to keep until next year. First place in each of the three sponsor tracks scores one point for the winning team's school; the school with the most track wins takes the Maple Cup. Side-quests (Clean Hacker Space, Most Aesthetic Slides and more) earn bonus school points. We don't promise that the Maple Cup isn't made of plastic...
+
+Robotics Track with BracketBot: Best Use of Next-Gen Robots (1st place)
+1 winner
+A Bambu Lab P1S 3D printer for every member of the team (4 printers, approx. $3,196 CAD retail value)
+
+Robotics Track with BracketBot: Best Use of Next-Gen Robots (2nd place)
+1 winner
+A Bambu Lab A1 3D printer for every member of the team (4 printers, approx. $1,516 CAD retail value).
+
+Robotics Track with BracketBot: Best Use of Next-Gen Robots (3rd place)
+1 winner
+A Bambu Lab A1 mini 3D printer for every member of the team (4 printers, approx. $1,076 CAD retail value).
+
+Web Agents Track with Steel.dev (1st place)
+$CAD 2,100 in cash
+1 winner
+$1,000 cash to the team, plus $600 in Steel Pro credits and $500 in OpenRouter credits (approx. $2,100 total value).
+
+Web Agents Track with Steel.dev (2nd place)
+$CAD 700 in cash
+1 winner
+Gaming keyboards or headphones for the team (one each), plus $300 in Steel Pro credits (approx. $700 CAD total value).
+
+Web Agents Track with Steel.dev (3rd place)
+$CAD 500 in cash
+1 winner
+JBL speakers for the team (one each), plus $100 in Steel Pro credits (approx. $500 CAD total value).
+
+Healthcare Track with Toralis Labs (1st place)
+1 winner
+Keychron C2 mechanical keyboard (approx. $80 CAD retail value), one for each member of the team.
+
+Healthcare Track with Toralis Labs (2nd place)
+1 winner
+Logitech G305 wireless mouse (approx. $70 CAD retail value), one for each member of the team.
+
+Healthcare Track with Toralis Labs (3rd place)
+1 winner
+Anker 10,000 mAh power bank (approx. $36 CAD retail value), one for each member of the team.
+
+Steel.dev: Computer Wildcard
+$CAD 500 in cash
+1 winner
+$500 cash for Steel's favourite use of the Steel Computer beta product.
+
+Steel.dev: Most Unhinged Idea
+$CAD 200 in cash
+1 winner
+A $200 Uber Eats gift card for the most unhinged idea of the weekend. Exactly what it sounds like!
+
+Devpost Achievements
+Submitting to this hackathon could earn you:
+
+
+X Hackathons
+ level 3
+
+Hackathon Winner
+ level 3
+Judges
+BracketBot Judging Panel
+BracketBot Judging Panel
+Robotics Track Judges, BracketBot
+
+Steel.dev Judging Panel
+Steel.dev Judging Panel
+Web Agents Track Judges, Steel.dev
+
+Toralis Labs Judging Panel
+Toralis Labs Judging Panel
+Healthcare Track Judges, Toralis Labs
+
+Judging Criteria
+Creativity
+How original is the idea, and how well does it fit the track brief? Judges look for a fresh angle on a real problem rather than a rebuild of something that already exists.
+Technical Excellence
+How hard was it to build, and how well does it work? Judges weigh the quality of the ML or engineering, how well you used the sponsor's hardware, dataset or API, and whether the demo actually runs.
+Wow Factor
+Did the demo make the judges sit up? Polish, a compelling pitch, a live demo that lands, and a project people will still be talking about at the closing ceremony. Each track is scored out of 100 across the three criteria by its sponsor's judges.
+To-dos
+ Join the Discord
+
+ Dismiss
+
+Register Apply to attend at utwat.ca (required to get in the door)
+
+ Dismiss
+
+Read Read the rules, code of conduct and submission requirements
+
+ Dismiss
+
+Go Pick your track and meet the sponsors!
+
+ Dismiss
+
+You're registered for this hackathon.
+
+Unregister  Edit registration questions 
+Questions? Email the hackathon manager
+
+Hackathon sponsors
+Steel.dev BracketBot Toralis Labs Cognition Accenture Shopify Anthropic Astral
+This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
+
+Devpost
+About
+Careers
+Contact
+Help
+Hackathons
+Browse hackathons
+Explore projects
+Host a hackathon
+Hackathon guides
+Portfolio
+Your projects
+Your hackathons
+Settings
+Connect
+ Twitter
+ Discord
+ Facebook
+ LinkedIn
+© 2026 Devpost, Inc. All rights reserved.
+Community guidelines
+Security
+CA notice
+Privacy policy
+Terms of service

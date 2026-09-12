@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "Synthetic scene, 4 branches, clearly labelled, detection disabled",
+    "LPS to RAS verified against actual MRML fiducial position",
+    "JSON export preserved all coordinates; branch selection and screenshot",
+    "subject001: real CT and binary mask loaded; stale results cleared; empty JSON supported",
+    "subject002: real CT and binary mask loaded; stale results cleared; empty JSON supported",
+    "subject003: real CT and binary mask loaded; stale results cleared; empty JSON supported",
+    "Layout switching and restoration of the original Slicer styling",
+    "Separate-process pipeline fixture: success",
+    "Separate-process pipeline fixture: failure",
+    "Separate-process pipeline fixture: invalid",
+    "Separate-process pipeline fixture: cancel",
+    "Mismatched case rejected without replacing previous results",
+    "Scene close and reload; display controls and JSON tab captured"
+  ],
+  "success": true
+}
