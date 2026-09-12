@@ -1,11 +1,7 @@
 """Competition entry point. All inference is local and CPU-only."""
 
-import os
-
-# Set before importing numerical libraries; honor the four-core evaluation budget.
-for variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
-                 "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS", "ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"):
-    os.environ[variable] = "4"
+from src.runtime import limit_cpu_threads, peak_rss_mb
+limit_cpu_threads()
 
 import argparse
 from dataclasses import asdict
@@ -13,7 +9,6 @@ import json
 from pathlib import Path
 import sys
 import platform
-import resource
 import time
 
 import SimpleITK as sitk
@@ -45,8 +40,7 @@ def main():
         data = prediction_dict(args.case_id or Path(args.image).resolve().parent.name, branches)
         write_prediction_json(args.output, data)
         context.diagnostics["config"] = asdict(config)
-        context.diagnostics["peak_rss_mb"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (
-            1e6 if platform.system() == "Darwin" else 1000)
+        context.diagnostics["peak_rss_mb"] = peak_rss_mb()
         context.diagnostics["versions"] = {"python": platform.python_version(), "SimpleITK": sitk.Version_VersionString()}
         if args.debug_dir:
             from src.visualization import show_detection

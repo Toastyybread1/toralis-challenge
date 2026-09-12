@@ -112,6 +112,105 @@ def load_case(image_path: str | Path, mask_path: str | Path) -> Case:
     return Case(image, mask, ct, labels.astype(bool))
 
 
+def crop_case(case: Case, margin_mm: float = 20.0) -> Case:
+    """Nika's aorta crop, retaining image geometry and a physical margin."""
+    if not np.isfinite(margin_mm) or margin_mm < 0:
+        raise ValueError("Crop margin must be finite and nonnegative")
+    if not case.mask_zyx.any():
+        raise ValueError("Aorta mask is empty")
+    occupied = [np.flatnonzero(case.mask_zyx.any(axis=tuple(a for a in range(3) if a != axis)))
+                for axis in range(3)]
+    spatial = np.array(case.image.GetDirection()).reshape(3, 3) @ np.diag(case.image.GetSpacing())
+    # Inverse rows convert a physical-radius ball into index margins, also for shear.
+    margin = np.ceil(margin_mm * np.linalg.norm(np.linalg.inv(spatial), axis=1))[::-1].astype(int)
+    start = np.maximum(0, np.array([v[0] for v in occupied]) - margin)
+    stop = np.minimum(case.mask_zyx.shape, np.array([v[-1] + 1 for v in occupied]) + margin)
+    size = (stop - start)[::-1].tolist()
+    image = sitk.RegionOfInterest(case.image, size, start[::-1].tolist())
+    mask = sitk.RegionOfInterest(case.aorta_mask, size, start[::-1].tolist())
+    slices = tuple(slice(int(a), int(b)) for a, b in zip(start, stop))
+    return Case(image, mask, case.ct_zyx[slices], case.mask_zyx[slices])
+
+
+def orthonormal_reference(image: sitk.Image, spacing_xyz=None, *, max_voxels=None,
+                          preserve_aligned_grid=False) -> sitk.Image:
+    """Nika's nearest-orthogonal grid, enclosing voxel boundaries without clipping.
+
+    Reflections are valid orientations and are retained. The detector supplies
+    only its cropped ROI and a voxel budget; full-volume repair is optional.
+    preserve_aligned_grid retains the detector's established center sampling
+    when the source direction is already orthogonal.
+    """
+    verify_geometry(image, image)
+    direction = np.array(image.GetDirection()).reshape(3, 3)
+    u, _, vt = np.linalg.svd(direction)
+    corrected = u @ vt
+    angles = np.degrees(np.arccos(np.clip(np.sum(direction * corrected, axis=0), -1, 1)))
+    spacing = np.array(image.GetSpacing() if spacing_xyz is None else spacing_xyz, dtype=float)
+    if spacing.shape != (3,) or not np.isfinite(spacing).all() or np.any(spacing <= 0):
+        raise ValueError("Target spacing requires three finite positive values")
+    if max_voxels is not None and (not isinstance(max_voxels, int) or max_voxels < 1):
+        raise ValueError("Voxel budget must be a positive integer")
+    corners = np.array(list(itertools.product(*[(-0.5, n - 0.5) for n in image.GetSize()])))
+    spatial = direction @ np.diag(image.GetSpacing())
+    projected = corners @ spatial.T @ corrected
+    lower, upper = projected.min(axis=0), projected.max(axis=0)
+    extent = upper - lower
+    center_grid = preserve_aligned_grid and np.allclose(direction.T @ direction, np.eye(3),
+                                                       rtol=0, atol=1e-5)
+    if center_grid:
+        corrected = direction
+        extent = (np.array(image.GetSize()) - 1) * image.GetSpacing()
+
+    def grid_size():
+        if center_grid:
+            return np.floor(extent / spacing).astype(int) + 1
+        return np.maximum(1, np.ceil(extent / spacing - 1e-7).astype(int))
+
+    size = grid_size()
+    if max_voxels is not None:
+        spacing *= max(1.0, (np.prod(extent / spacing) / max_voxels) ** (1 / 3))
+        size = grid_size()
+        while np.prod(size) > max_voxels:
+            spacing *= 1.01
+            size = grid_size()
+    reference = sitk.Image(size.tolist(), sitk.sitkFloat32)
+    reference.SetSpacing(spacing.tolist())
+    reference.SetDirection(corrected.ravel().tolist())
+    origin = (image.GetOrigin() if center_grid else
+              (np.array(image.GetOrigin()) + corrected @ (lower + spacing / 2)).tolist())
+    reference.SetOrigin(origin)
+    reference.SetMetaData("toralis_max_axis_correction_degrees", str(float(angles.max())))
+    return reference
+
+
+def resample_case(case: Case, reference: sitk.Image | None = None) -> Case:
+    """Resample CT linearly and the binary mask with nearest-neighbor interpolation."""
+    verify_geometry(case.image, case.aorta_mask)
+    if reference is None:
+        reference = orthonormal_reference(case.image)
+    image = sitk.Resample(case.image, reference, sitk.Transform(), sitk.sitkLinear, -1024, sitk.sitkFloat32)
+    mask = sitk.Resample(case.aorta_mask, reference, sitk.Transform(), sitk.sitkNearestNeighbor, 0, sitk.sitkUInt8)
+    for key in reference.GetMetaDataKeys():
+        image.SetMetaData(key, reference.GetMetaData(key))
+    aorta = sitk.GetArrayFromImage(mask).astype(bool)
+    if not aorta.any():
+        raise ValueError("Aorta disappeared on the working grid; decrease working spacing")
+    return Case(image, mask, sitk.GetArrayFromImage(image), aorta)
+
+
+def read_nifti_pair(image_path: str | Path, mask_path: str | Path):
+    """Validated, orthogonal image pair for Nika's preprocessing callers.
+
+    Inference uses load_case + prepare_case to resample only a bounded ROI.
+    """
+    case = load_case(image_path, mask_path)
+    direction = np.array(case.image.GetDirection()).reshape(3, 3)
+    if not np.allclose(direction.T @ direction, np.eye(3), rtol=0, atol=1e-5):
+        case = resample_case(case)
+    return case.image, case.aorta_mask
+
+
 def index_to_physical(image: sitk.Image, index_xyz) -> tuple[float, ...]:
     """Convert an integer XYZ voxel index to physical LPS millimetres."""
     index = np.asarray(index_xyz)
@@ -175,42 +274,13 @@ def prepare_case(case: Case, config: Config) -> PreparedCase:
     """Crop first, then resample a bounded ROI to isotropic working voxels."""
     from scipy import ndimage as ndi
 
-    occupied = [np.flatnonzero(case.mask_zyx.any(axis=tuple(a for a in range(3) if a != axis)))
-                for axis in range(3)]
-    spacing = np.array(case.image.GetSpacing())[::-1]
-    margin = np.ceil((config.shell_mm + 3 * max(config.vessel_scales_mm)) / spacing).astype(int)
-    start = np.maximum(0, np.array([v[0] for v in occupied]) - margin)
-    stop = np.minimum(case.mask_zyx.shape, np.array([v[-1] + 1 for v in occupied]) + margin)
-    size = (stop - start)[::-1]
-    region = sitk.RegionOfInterest(case.image, size.tolist(), start[::-1].tolist())
-    mask = sitk.RegionOfInterest(case.aorta_mask, size.tolist(), start[::-1].tolist())
-    direction = np.array(region.GetDirection()).reshape(3, 3)
-    output_direction = direction
-    output_origin = region.GetOrigin()
-    extent = (np.array(region.GetSize()) - 1) * region.GetSpacing()
-    if not np.allclose(direction.T @ direction, np.eye(3), atol=1e-5):
-        u, _, vt = np.linalg.svd(direction)
-        output_direction = u @ vt
-        corners = np.array([region.TransformIndexToPhysicalPoint([int(v) for v in p])
-                            for p in itertools.product(*[(0, n - 1) for n in region.GetSize()])])
-        projected = corners @ output_direction
-        output_origin = (output_direction @ projected.min(axis=0)).tolist()
-        extent = np.ptp(projected, axis=0)
-    step = max(config.working_spacing_mm, (np.prod(extent) / config.max_roi_voxels) ** (1 / 3))
-    output_size = np.floor(extent / step).astype(int) + 1
-    while np.prod(output_size) > config.max_roi_voxels:
-        step *= 1.01
-        output_size = np.floor(extent / step).astype(int) + 1
-    reference = sitk.Image(output_size.tolist(), sitk.sitkFloat32)
-    reference.SetOrigin(output_origin)
-    reference.SetDirection(output_direction.ravel().tolist())
-    reference.SetSpacing([step] * 3)
-    image = sitk.Resample(region, reference, sitk.Transform(), sitk.sitkLinear, -1024, sitk.sitkFloat32)
-    mask_image = sitk.Resample(mask, reference, sitk.Transform(), sitk.sitkNearestNeighbor, 0, sitk.sitkUInt8)
-    aorta = sitk.GetArrayFromImage(mask_image).astype(bool)
-    if not aorta.any():
-        raise ValueError("Aorta disappeared on the working grid; decrease working spacing")
+    cropped = crop_case(case, config.shell_mm + 3 * max(config.vessel_scales_mm))
+    reference = orthonormal_reference(cropped.image, [config.working_spacing_mm] * 3,
+                                      max_voxels=config.max_roi_voxels, preserve_aligned_grid=True)
+    resampled = resample_case(cropped, reference)
+    step = resampled.image.GetSpacing()[0]
+    aorta = resampled.mask_zyx
     distance, nearest = ndi.distance_transform_edt(~aorta, sampling=step, return_indices=True)
-    return PreparedCase(image, sitk.GetArrayFromImage(image), aorta, step,
+    return PreparedCase(resampled.image, resampled.ct_zyx, aorta, step,
                         distance.astype(np.float32), nearest,
                         (distance > 0) & (distance <= config.shell_mm))

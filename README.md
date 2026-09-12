@@ -61,6 +61,47 @@ fallback preserves the exact file affine in LPS. The inference ROI is then
 explicitly resampled to an orthogonal grid; source coordinates are not silently
 replaced. This fallback is recorded in the diagnostics.
 
+## Inspect Inputs and Cropping
+
+Nika's loading and inspection tools share the detector's preprocessing module.
+The combined grid builder uses her nearest-orthogonal orientation and full
+voxel-boundary coverage. CT uses linear interpolation, masks use nearest
+neighbor, and reflected orientations are retained. Detection resamples only
+the aorta crop to stay within the memory budget. Scans that already have an
+orthogonal orientation retain the detector's existing voxel-center sampling;
+the new full-coverage correction is applied when the source grid is skewed.
+
+Inspect any case, with original and cropped axial/coronal/sagittal overlays:
+
+```bash
+python inspect_case.py --image image.nii.gz --aorta-mask aorta_mask.nii.gz \
+  --output-dir outputs/inspection
+```
+
+Add `--show` to open the figures, or `--resample` to export the orthogonal crop
+as `ct_orthogonal.nii.gz` and `mask_orthogonal.nii.gz`. The statistics report
+includes physical mask volume before and after resampling and the maximum
+orientation correction. `--crop-margin-mm` defaults to 20 mm. Source files
+are never rewritten. These inspection statistics are not competition predictions;
+use `run.py --output prediction.json` for those.
+
+Nika's previous `inspect_024.py` entry point accepts the same arguments and
+works with any subject. The `utils.read_nifti_pair` import also remains available;
+it validates inputs and returns a matching orthogonal SimpleITK pair. It may
+resample the full scan, so inference uses the bounded crop path instead.
+
+Check loading and cropping across the dataset without running detection:
+
+```bash
+python test_all.py --dataset /path/to/toralis-dataset \
+  --output outputs/preprocessing-checks.json
+```
+
+Both batch tools expect one `orig*.nii` or `orig*.nii.gz` CT and one
+`mask*.nii` or `mask*.nii.gz` mask per case directory. Invalid cases are reported
+individually and produce a nonzero exit status. Dataset paths are supplied on
+the command line rather than tied to a teammate's local folder.
+
 ## Evaluate the Dataset
 
 ```bash
@@ -131,6 +172,9 @@ Tests include NIfTI round trips, mislabeled gzip inputs, anisotropic and rotated
 geometry, physical shells, single/zero branches, nearby separate openings,
 downstream-connected vessels, common trunks, short or disconnected vessels,
 crop and intensity augmentation, curved-path seeds, and reference matching.
+Integration tests also check full physical coverage after shear correction,
+reflected grids, metre/micron conversion, CT/mask alignment, input preservation,
+orthogonal NIfTI export, and the inspection/batch/prediction commands.
 
 This is an uncalibrated baseline. Passing synthetic tests and producing valid
 JSON do not establish clinical or competition accuracy. Important limitations:

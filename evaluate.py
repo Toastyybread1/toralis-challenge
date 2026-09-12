@@ -1,5 +1,8 @@
 """Run a dataset serially in fresh CPU-limited processes, optionally against references."""
 
+from src.runtime import limit_cpu_threads
+limit_cpu_threads()
+
 import argparse
 import json
 from pathlib import Path
@@ -9,6 +12,7 @@ import time
 
 from src.evaluation import compare_predictions
 from src.output import validate_prediction
+from src.dataset import case_directories, find_case_files
 
 
 def main():
@@ -21,22 +25,24 @@ def main():
     parser.add_argument("--visualize-cases", type=int, default=3)
     parser.add_argument("--timeout", type=float, default=120)
     args = parser.parse_args()
-    folders = sorted(p for p in args.dataset.iterdir() if p.is_dir())
-    if not folders:
-        parser.error("Dataset contains no case directories")
+    try:
+        folders = case_directories(args.dataset)
+    except ValueError as error:
+        parser.error(str(error))
     args.output_dir.mkdir(parents=True, exist_ok=True)
     results = []
     for i, folder in enumerate(folders):
         output = args.output_dir / folder.name
-        ct = sorted(folder.glob("orig*.nii*"))
-        mask = sorted(folder.glob("mask*.nii*"))
         row = {"case_id": folder.name}
-        if len(ct) != 1 or len(mask) != 1:
-            row.update(status="failed", error="Expected one orig*.nii[.gz] and one mask*.nii[.gz]")
+        try:
+            ct, mask = find_case_files(folder)
+        except (ValueError, OSError) as error:
+            row.update(status="failed", error=str(error))
             results.append(row)
+            print(f"{folder.name}: FAILED: {error}", flush=True)
             continue
         command = [sys.executable, str(Path(__file__).with_name("run.py")),
-                   "--image", str(ct[0]), "--aorta-mask", str(mask[0]),
+                   "--image", str(ct), "--aorta-mask", str(mask),
                    "--output", str(output / "prediction.json"), "--case-id", folder.name,
                    "--diagnostics", str(output / "diagnostics.json")]
         if i < args.visualize_cases:

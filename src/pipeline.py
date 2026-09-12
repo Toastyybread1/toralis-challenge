@@ -21,6 +21,8 @@ def run_pipeline(image_path, mask_path, config=None):
     prepared = time.perf_counter()
     candidates, context = detect_candidates(roi, config)
     context.diagnostics["geometry_source"] = geometry_source
+    context.diagnostics["max_axis_correction_degrees"] = float(
+        roi.image.GetMetaData("toralis_max_axis_correction_degrees"))
     detected = time.perf_counter()
     branches = analyze_candidates(candidates, roi, context, config)
     finished = time.perf_counter()
