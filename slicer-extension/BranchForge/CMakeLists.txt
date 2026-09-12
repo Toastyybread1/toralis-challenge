@@ -3,6 +3,7 @@ set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
   BranchForgeLib/__init__.py
   BranchForgeLib/contract.py
+  BranchForgeLib/integration.py
   BranchForgeLib/scene.py
   BranchForgeLib/sample.py
   BranchForgeLib/ui.py

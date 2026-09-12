@@ -3,4 +3,9 @@ __pycache__/
 .venv/
 slicer-extension/artifacts/
 build/
-
+outputs/
+wheelhouse/
+.DS_Store
+/data/
+/toralis-dataset/
+.claude/

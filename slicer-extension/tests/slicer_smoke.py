@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import time
 import traceback
+import faulthandler
 
 import qt
 import slicer
@@ -11,7 +12,15 @@ import slicer
 root = Path(__file__).resolve().parents[1]
 out = root / "artifacts" / "qa"
 out.mkdir(parents=True, exist_ok=True)
-report = {"checks": []}
+class ProgressChecks(list):
+    def append(self, message):
+        super().append(message)
+        print("CHECK: " + message, flush=True)
+
+
+report = {"checks": ProgressChecks()}
+thread_dump = (out / "ui-thread-dump.log").open("w")
+faulthandler.dump_traceback_later(90, repeat=True, file=thread_dump)
 
 
 def pump(ms):
@@ -32,6 +41,7 @@ def await_process(widget, timeout=25):
     return ticks
 
 try:
+    print("BEGIN native UI smoke", flush=True)
     slicer.util.selectModule("BranchForge")
     widget = slicer.modules.branchforge.widgetRepresentation().self()
     # Isolate pipeline preferences even if this test is run without --testing.
@@ -72,7 +82,8 @@ try:
     pump(700)
     widget.save_screenshot(out / "branchforge-synthetic.png")
     report["checks"].append("JSON export preserved all coordinates; selection, details, stepping, fly-to and screenshot")
-    for name in ["subject001", "subject002", "subject003"]:
+    assert len(widget.case_items) >= 3, "Provide at least three real studies"
+    for name in [case[0] for case in widget.case_items[:3]]:
         case = next(c for c in widget.case_items if c[0] == name)
         widget.case_edit.setText(case[0])
         widget.image_edit.setText(case[1])
@@ -87,7 +98,7 @@ try:
         empty = {"case_id": name, "parent": {"instance_id": "aorta"}, "daughters": []}
         widget.apply_prediction(empty, "TEST ONLY / empty-schema fixture, not detection")
         assert widget.export_button.enabled and widget.table_stack.currentIndex == 0
-        assert "No eligible" in widget.table_empty.title.text
+        assert "No branches detected" in widget.table_empty.title.text
         widget.clear_prediction()
         widget.save_screenshot(out / (name + "-loaded.png"))
         report["checks"].append(name + ": real CT and binary mask loaded; stale results cleared; empty JSON supported")
@@ -168,6 +179,7 @@ except Exception:
     report["traceback"] = traceback.format_exc()
     print(report["traceback"])
 finally:
+    faulthandler.cancel_dump_traceback_later()
     (out / "slicer-smoke-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
     sys.exit(0 if report.get("success") else 1)

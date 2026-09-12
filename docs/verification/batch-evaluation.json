@@ -1,0 +1,227 @@
+[
+  {
+    "case_id": "subject001",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 31.46771589992568,
+    "pipeline_seconds": 11.39344420004636,
+    "peak_rss_mb": 624.914432,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject002",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 25.851347600109875,
+    "pipeline_seconds": 13.809770199935883,
+    "peak_rss_mb": 455.266304,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject003",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 55.70742139988579,
+    "pipeline_seconds": 36.17687249998562,
+    "peak_rss_mb": 720.121856,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject004",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 31.080059899948537,
+    "pipeline_seconds": 21.64335840009153,
+    "peak_rss_mb": 433.88928,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject005",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 39.07994939992204,
+    "pipeline_seconds": 26.64560899999924,
+    "peak_rss_mb": 506.585088,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject006",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 45.46616069995798,
+    "pipeline_seconds": 35.941047800006345,
+    "peak_rss_mb": 689.74592,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject007",
+    "status": "ok",
+    "detected_count": 3,
+    "wall_seconds": 19.59972359985113,
+    "pipeline_seconds": 13.976527800085023,
+    "peak_rss_mb": 395.358208,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject008",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 32.13307560002431,
+    "pipeline_seconds": 27.507614000001922,
+    "peak_rss_mb": 681.885696,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject009",
+    "status": "ok",
+    "detected_count": 3,
+    "wall_seconds": 26.008642400149256,
+    "pipeline_seconds": 20.118833099957556,
+    "peak_rss_mb": 528.171008,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject010",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 34.73038720013574,
+    "pipeline_seconds": 29.711111899930984,
+    "peak_rss_mb": 814.030848,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject011",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 19.938134900061414,
+    "pipeline_seconds": 15.11223080009222,
+    "peak_rss_mb": 440.598528,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject012",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 23.53779640002176,
+    "pipeline_seconds": 18.734300199896097,
+    "peak_rss_mb": 650.686464,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject013",
+    "status": "ok",
+    "detected_count": 5,
+    "wall_seconds": 22.917028500000015,
+    "pipeline_seconds": 16.575181199936196,
+    "peak_rss_mb": 581.722112,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject014",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 18.08110770001076,
+    "pipeline_seconds": 12.304939500056207,
+    "peak_rss_mb": 521.433088,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject015",
+    "status": "ok",
+    "detected_count": 4,
+    "wall_seconds": 25.184302399866283,
+    "pipeline_seconds": 19.669473699992523,
+    "peak_rss_mb": 607.571968,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject016",
+    "status": "ok",
+    "detected_count": 1,
+    "wall_seconds": 34.01129100006074,
+    "pipeline_seconds": 30.05690039996989,
+    "peak_rss_mb": 753.516544,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject017",
+    "status": "ok",
+    "detected_count": 0,
+    "wall_seconds": 11.204522900050506,
+    "pipeline_seconds": 5.722934799967334,
+    "peak_rss_mb": 257.327104,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject018",
+    "status": "ok",
+    "detected_count": 15,
+    "wall_seconds": 45.329243700020015,
+    "pipeline_seconds": 40.624546099919826,
+    "peak_rss_mb": 817.963008,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject019",
+    "status": "ok",
+    "detected_count": 0,
+    "wall_seconds": 12.917825400130823,
+    "pipeline_seconds": 7.776534300064668,
+    "peak_rss_mb": 275.10784,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject020",
+    "status": "ok",
+    "detected_count": 1,
+    "wall_seconds": 15.52908489992842,
+    "pipeline_seconds": 9.803242200054228,
+    "peak_rss_mb": 304.295936,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject021",
+    "status": "ok",
+    "detected_count": 2,
+    "wall_seconds": 20.39561100001447,
+    "pipeline_seconds": 15.415549099911004,
+    "peak_rss_mb": 442.953728,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject022",
+    "status": "ok",
+    "detected_count": 8,
+    "wall_seconds": 34.128096899949014,
+    "pipeline_seconds": 30.918439199915156,
+    "peak_rss_mb": 741.482496,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject023",
+    "status": "ok",
+    "detected_count": 0,
+    "wall_seconds": 12.43807000014931,
+    "pipeline_seconds": 6.737931499956176,
+    "peak_rss_mb": 247.84896,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject024",
+    "status": "ok",
+    "detected_count": 12,
+    "wall_seconds": 38.56929969997145,
+    "pipeline_seconds": 33.580446999985725,
+    "peak_rss_mb": 724.938752,
+    "reference_comparison": null
+  },
+  {
+    "case_id": "subject025",
+    "status": "ok",
+    "detected_count": 9,
+    "wall_seconds": 35.745070999953896,
+    "pipeline_seconds": 30.00356450001709,
+    "peak_rss_mb": 820.14208,
+    "reference_comparison": null
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "cases": [
+    {
+      "subject": "subject001",
+      "case_id": "custom_case_001",
+      "count": 4,
+      "seconds": 20.70299999997951,
+      "responsive_event_ticks": 1082,
+      "json_roundtrip": true,
+      "ras_markers_verified": true
+    },
+    {
+      "subject": "subject002",
+      "case_id": "subject002",
+      "count": 4,
+      "seconds": 25.70299999997951,
+      "responsive_event_ticks": 1505,
+      "json_roundtrip": true,
+      "ras_markers_verified": true
+    },
+    {
+      "subject": "subject003",
+      "case_id": "subject003",
+      "count": 4,
+      "seconds": 36.375,
+      "responsive_event_ticks": 2291,
+      "json_roundtrip": true,
+      "ras_markers_verified": true
+    }
+  ],
+  "success": true,
+  "accuracy_validated": false
+}

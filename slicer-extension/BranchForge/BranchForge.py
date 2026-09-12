@@ -16,6 +16,7 @@ from slicer.ScriptedLoadableModule import ScriptedLoadableModule, ScriptedLoadab
 from BranchForgeLib import ui
 from BranchForgeLib.contract import discover_cases, load_prediction, lps_to_ras, save_prediction, validate_prediction
 from BranchForgeLib.scene import AORTA_COLOR, BranchScene, COLORS
+from BranchForgeLib.integration import detector_paths, detection_arguments
 from BranchForgeLib.sample import create_sample
 from BranchForgeLib.ui import button, card, divider, label
 
@@ -193,11 +194,13 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         config_layout.setSpacing(6)
         self.python_edit = self.path_input(config_layout, "TEAM'S PYTHON EXECUTABLE", "python.exe or /path/to/python", self.choose_python)
         self.pipeline_edit = self.path_input(config_layout, "DETECTION SCRIPT", "Path to your team's run.py", self.choose_pipeline)
-        self.python_edit.setText(str(self.settings.value("BranchForge/Python", "")))
-        self.pipeline_edit.setText(str(self.settings.value("BranchForge/Pipeline", "")))
+        executable, script = detector_paths(self.repo, str(self.settings.value("BranchForge/Python", "")),
+                                            str(self.settings.value("BranchForge/Pipeline", "")))
+        self.python_edit.setText(executable)
+        self.pipeline_edit.setText(script)
         self.python_edit.connect("textChanged(QString)", self.refresh_pipeline_state)
         self.pipeline_edit.connect("textChanged(QString)", self.refresh_pipeline_state)
-        config_layout.addWidget(label("Called as  run.py --image … --aorta-mask … --output …\nin its own process, so the viewer stays responsive.", "BFHint", True))
+        config_layout.addWidget(label("Uses the bundled detector in .venv. Run scripts/setup_environment.py first.\nRuns separately; includes the loaded case ID.", "BFHint", True))
         self.pipeline_section = ui.Collapsible("Connect your team's run.py", config)
         body.addWidget(self.pipeline_section)
         layout.addWidget(frame)
@@ -899,11 +902,11 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
             self.table.selectRow(0)
         else:
             self.table_stack.setCurrentIndex(0)
-            self.table_empty.set_text("No eligible branches", "This prediction contains an empty daughters list. The JSON is valid and can be exported.", "check")
+            self.table_empty.set_text("No branches detected", "The detector returned zero daughters. This does not prove there are no eligible branches; inspect the CT. JSON can be exported.", "info")
             self.details_stack.setCurrentIndex(0)
-            self.details_empty.set_text("No eligible branches", "A valid result with zero daughters. Nothing to inspect.", "check")
-            self.detail_title.setText("No eligible branches")
-            self.selection_summary.setText("No eligible branches in this prediction.")
+            self.details_empty.set_text("No branches detected", "Zero predictions, not a verified absence of branches.", "info")
+            self.detail_title.setText("No branches detected")
+            self.selection_summary.setText("No branches detected. Review the CT for possible misses.")
         self.update_visibility()
         self.update_actions()
 
@@ -1096,7 +1099,8 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.update_actions()
         if self.toast is not None and self.workspace_open:
             self.toast.show_message("Detection started", "info")
-        process.start(executable, [script, "--image", self.loaded_image, "--aorta-mask", self.loaded_mask, "--output", self.output_path])
+        process.start(executable, detection_arguments(script, self.loaded_image, self.loaded_mask,
+                                                       self.output_path, self.loaded_case))
 
     def tick_elapsed(self):
         if self.process is None:

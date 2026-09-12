@@ -6,7 +6,7 @@ file paths and one JSON output file, matching the challenge brief.
 ## Command
 
 ```bash
-python run.py --image image.nii.gz --aorta-mask aorta_mask.nii.gz --output prediction.json
+python run.py --image image.nii.gz --aorta-mask aorta_mask.nii.gz --output prediction.json --case-id subject001
 ```
 
 - Support both `.nii` and `.nii.gz`.
@@ -17,6 +17,7 @@ python run.py --image image.nii.gz --aorta-mask aorta_mask.nii.gz --output predi
   the script's directory as the working directory. The user chooses the Python
   executable (for example a virtual environment with SimpleITK installed).
 - `case_id` must match the case ID shown when **Load study** was clicked.
+  The GUI passes it explicitly with `--case-id`; connected scripts must accept that option.
   For the supplied dataset this is `subject001`, `subject002`, etc.
 - The pipeline should complete all work before exiting and avoid detached child
   processes. The GUI cancels the launched process with terminate, then kill.

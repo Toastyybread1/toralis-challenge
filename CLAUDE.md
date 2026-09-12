@@ -1,5 +1,10 @@
 # BranchForge: complete project context and UI redesign brief
 
+> **Integration update, September 12:** this handoff predates the combined working
+> version. Read `README.md` and `docs/INTEGRATION_STATUS.md` first. The actual
+> detector is now bundled, `.venv` setup is available, and both tracing paths
+> share validation. Historical statements below about a missing detector are obsolete.
+
 Prepared on September 12, 2026, from the user's conversation, the supplied challenge PDF, the supplied Toralis whitepaper and Devpost text, and inspection of the current local code.
 
 ## 1. Your assignment as the incoming Claude agent
