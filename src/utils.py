@@ -1,3 +1,6 @@
+# Shared NIfTI I/O and paired physical resampling. This module handles geometry,
+# not branch detection. NiBabel affines and SimpleITK coordinates use different
+# conventions; the file readers perform that conversion, not manual sign flips.
 import os
 import shutil
 import tempfile
@@ -209,6 +212,8 @@ def _resample_nifti_pair(
         "degrees",
     )
 
+    # Covering the source extent does not preserve every lumen voxel or its
+    # measured volume: interpolation can alter narrow vessels and boundaries.
     # CT: linear interpolation
     resampled_image = resample_from_to(
         image,
@@ -313,6 +318,7 @@ def _resample_nifti_pair(
 def read_nifti_pair(
     image_path,
     mask_path,
+    metadata=None,
 ):
     """
     Robustly load a CT and aorta mask.
@@ -323,6 +329,9 @@ def read_nifti_pair(
     - gzip-compressed files incorrectly named .nii
     - slightly non-orthonormal image geometry
     """
+
+    if metadata is not None:
+        metadata.update(loader='src.utils.read_nifti_pair', geometry_resampled=False)
 
     image_readable = None
     mask_readable = None
@@ -368,6 +377,10 @@ def read_nifti_pair(
                 not in error_message
             ):
                 raise
+
+            if metadata is not None:
+                metadata.update(geometry_resampled=True,
+                    reason='Nonorthonormal input; original paired resampling fallback')
 
             return _resample_nifti_pair(
                 image_readable,
