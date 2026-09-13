@@ -372,6 +372,8 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         layout.addWidget(self.selection_summary)
         self.export_button = button("Export prediction JSON", self.export_results, "primary", "export", "Save the prediction exactly as received, in SimpleITK physical coordinates (Ctrl+E)")
         layout.addWidget(self.export_button)
+        self.nifti_button = button("Export edited .nii", self.export_edited_nifti, "ghost", "export", "Save a new labelmap: 0 background, 1 current aorta, 2 estimated traces outside it. Not a modified CT or full daughter-vessel segmentation. Requires real traced paths.")
+        layout.addWidget(self.nifti_button)
         row = qt.QHBoxLayout()
         row.setSpacing(8)
         self.capture_button = button("Save visual check", self.capture_view, "ghost", "camera", "Capture the workspace as a PNG for the required visual checks")
@@ -1099,6 +1101,25 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
             slicer.app.clipboard().setText(json.dumps(self.prediction, indent=2, allow_nan=False))
             self.notify("Prediction JSON copied to clipboard", "success")
 
+    def export_edited_nifti(self):
+        if not self.path_evidence or self.synthetic or self.prediction is None:
+            return
+        path = qt.QFileDialog.getSaveFileName(
+            self.parent, "Export edited labelmap (aorta + estimated traces)",
+            str(self.repo / (self.loaded_case + "_edited_labels.nii")),
+            "NIfTI labelmap (*.nii);;Compressed NIfTI labelmap (*.nii.gz)")
+        if path:
+            self.guard(lambda: self.export_edited_nifti_path(path))
+
+    def export_edited_nifti_path(self, path):
+        if self.process is not None or self.synthetic or self.prediction is None or not self.path_evidence:
+            raise ValueError("Run detection to obtain real traces before exporting an edited NIfTI.")
+        if set(self.path_evidence) != {item['instance_id'] for item in self.prediction['daughters']}:
+            raise ValueError("Some branches are missing traced paths. Run detection again before export.")
+        target = self.scene.export_edited_nifti(path, self.path_evidence, (self.loaded_image, self.loaded_mask))
+        self.notify("Edited NIfTI exported", "success", "Saved labelmap: 1 = current aorta, 2 = estimated traces outside it. Original CT unchanged.")
+        return target
+
     def capture_view(self):
         if not self.scene.ct:
             return
@@ -1163,6 +1184,7 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.run_button.setEnabled(has_study and not self.synthetic and not busy)
         self.import_button.setEnabled(has_study and not busy)
         self.export_button.setEnabled(self.prediction is not None and not busy)
+        self.nifti_button.setEnabled(has_study and self.prediction is not None and bool(self.path_evidence) and not self.synthetic and not busy)
         self.copy_button.setEnabled(self.prediction is not None)
         self.capture_button.setEnabled(has_study and self.prediction is not None)
         self.cancel_button.setVisible(busy)

@@ -4,6 +4,9 @@ set(MODULE_PYTHON_SCRIPTS
   BranchForgeLib/__init__.py
   BranchForgeLib/contract.py
   BranchForgeLib/integration.py
+  BranchForgeLib/input_files.py
+  BranchForgeLib/paths.py
+  BranchForgeLib/nifti_export.py
   BranchForgeLib/scene.py
   BranchForgeLib/sample.py
   BranchForgeLib/ui.py

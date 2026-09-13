@@ -1,5 +1,10 @@
 # Current processing path and optimization record
 
+**Master note:** the stage metrics below predate the final challenge-format
+eligibility filter. The shipped export has 17/19 draft origin matches, one false
+positive and 91.9% F1 on five development cases; see the [current README](../README.md).
+Do not substitute intermediate review-group metrics for final exported results.
+
 Latest stage: [second-paper aortic-backbone review](../results/aortic_tree_verified/REPORT.md).
 It preserves all 18/19 draft matches and defers one case 21 return connection,
 leaving two unmatched counted groups (90.0% precision, 94.7% recall, 92.3% F1).

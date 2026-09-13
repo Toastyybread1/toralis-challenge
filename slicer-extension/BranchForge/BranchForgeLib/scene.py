@@ -1,6 +1,7 @@
 """Rendering adapter. All MRML coordinates are RAS, all result data stays LPS."""
 
 import math
+from pathlib import Path
 import tempfile
 import numpy as np
 import slicer
@@ -8,6 +9,7 @@ import vtk
 
 from .contract import lps_to_ras
 from .input_files import display_input_path
+from .nifti_export import export_target, traced_labelmap
 from .ui import fly_camera
 
 COLORS = [(1.0, .66, .43), (.53, .74, 1.0), (.82, .65, 1.0), (1.0, .80, .42), (.43, .87, .90), (1.0, .52, .65)]
@@ -121,6 +123,47 @@ class BranchScene:
         display.SetOpacity2DFill(.14)
         display.SetOpacity2DOutline(.9)
         return segment
+
+    def export_edited_nifti(self, path, evidence, protected_paths=()):
+        """Save the current parent plus real estimated paths, preserving CT geometry."""
+        target = export_target(path, protected_paths)
+        if self.ct is None or self.aorta is None:
+            raise ValueError('Load a CT and parent-aorta mask first.')
+        if self.ct.GetParentTransformNode() or self.aorta.GetParentTransformNode():
+            raise ValueError('Export requires the original study coordinate frame; remove external transforms first.')
+        segmentation = self.aorta.GetSegmentation()
+        if segmentation.GetNumberOfSegments() != 1:
+            raise ValueError('Expected one parent-aorta segment. Export extra segments using Slicer Segmentations.')
+        parent = slicer.util.arrayFromSegmentBinaryLabelmap(
+            self.aorta, segmentation.GetNthSegmentID(0), self.ct)
+        if parent.shape != slicer.util.arrayFromVolume(self.ct).shape:
+            raise ValueError('The edited segmentation extends beyond the CT grid; resolve this before export.')
+        matrix = vtk.vtkMatrix4x4()
+        self.ct.GetIJKToRASMatrix(matrix)
+        labels = traced_labelmap(parent, slicer.util.arrayFromVTKMatrix(matrix),
+                                 [item['path_xyz_mm'] for item in evidence.values()])
+        node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLabelMapVolumeNode', 'BranchForge export')
+        created = [node]
+        try:
+            node.SetIJKToRASMatrix(matrix)
+            slicer.util.updateVolumeFromArray(node, labels)
+            # Validate a temporary NIfTI round trip before touching the destination.
+            with tempfile.TemporaryDirectory(prefix='.branchforge-export-', dir=str(target.parent)) as folder:
+                staged = Path(folder) / target.name
+                if not slicer.util.saveNode(node, str(staged)):
+                    raise OSError('Unable to write the NIfTI labelmap.')
+                check = slicer.util.loadLabelVolume(str(staged), {'show': False, 'name': 'Export verification'})
+                created.append(check)
+                restored = vtk.vtkMatrix4x4()
+                check.GetIJKToRASMatrix(restored)
+                if not np.allclose(slicer.util.arrayFromVTKMatrix(restored), slicer.util.arrayFromVTKMatrix(matrix), atol=1e-4, rtol=1e-6):
+                    raise ValueError('NIfTI cannot preserve this CT geometry exactly enough; export cancelled.')
+                if not np.array_equal(slicer.util.arrayFromVolume(check), labels):
+                    raise ValueError('NIfTI voxel verification failed; export cancelled.')
+                staged.replace(target)
+        finally:
+            self.remove_nodes(created)
+        return target
 
     @staticmethod
     def view():

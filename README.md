@@ -1,107 +1,36 @@
-# BranchForge: combined CPU detector and 3D Slicer extension
+# BranchForge
+Discover where smaller arteries leave the aorta, then inspect the results in a purpose-built 3D Slicer workspace.
 
-The final `master` branch combines `nika-setup` (7296590) with
-`integration/branchforge-working` (7bd3549). The original branches are preserved.
-The GUI invokes the new detector asynchronously, displays the unchanged challenge
-JSON plus readable results, and joins review sidecars by ID to show actual
-estimated centerline paths. Those traces are not segmented vessel walls.
+## Install on Windows
+On a Windows x64 laptop with internet access, open **Command Prompt** and paste this command:
 
-## Windows: install and open
-
-See the [one-command Windows tutorial](docs/WINDOWS_QUICKSTART.md).
-The installer includes Slicer, an isolated Python environment, CPU PyTorch and
-the ten supplied small model checkpoints. No training, Git, GPU toolkit, MCP
-server or private scan download is required. Real CT/mask inputs are separate.
-
-From a source checkout, use Python 3.12 or 3.13:
-
-```powershell
-python scripts/setup_environment.py
-powershell -NoProfile -ExecutionPolicy Bypass -File slicer-extension/Launch-BranchForge.ps1
+```cmd
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $p=Join-Path $env:TEMP ('Install-BranchForge-'+[guid]::NewGuid()+'.ps1'); Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/Toastyybread1/toralis-challenge/master/scripts/Install-BranchForge.ps1' -OutFile $p; & $p"
 ```
 
-Never install detector dependencies into Slicer's bundled Python.
-On macOS use a Python architecture matching the Slicer process; Windows uses x64.
-See [Slicer setup](SLICER_GUIDE.md) for additional module paths and startup script.
+It installs Slicer, an isolated Python environment and the supplied CPU models, then creates a desktop shortcut—no Git, GPU or training required.
+Open BranchForge, choose your CT and matching aorta mask, click **Load study**, then **Run detection**; scans are supplied separately.
+For development subjects 019–023, select that subject’s **held-out models** in Detect; see [Windows help](docs/WINDOWS_QUICKSTART.md) or [macOS/source setup](SLICER_GUIDE.md) if needed.
 
-## Load and detect
+## What you can do
 
-1. Choose the dataset folder or browse to a CT and matching parent-aorta mask.
-2. Click **Load study**.
-3. In Detect, select **Unseen study - all models** for genuinely new cases.
-   For development subjects 019-023 select the matching **held-out models** option.
-   The case ID alone does not choose a fold.
-4. Click **Run detection**. Inspect origins, seeds, direction arrows, estimated
-   paths, radius rings, readable report and raw JSON.
+- **Explore:** linked 3D/CT views with selectable branch openings, seeds, directions, estimated radii and traces.
+- **Understand:** readable results first, unchanged challenge JSON underneath.
+- **Export:** JSON, screenshots and **Export edited .nii**. NIfTI labels: **0 background / 1 edited aorta / 2 estimated traces outside it**. Preserves the CT grid; not a modified CT or full vessel segmentation. [Export details](docs/NIFTI_EXPORT.md)
+- **Share in AR:** optional QR sharing at anatomical scale on compatible phones; publisher setup required. iPhone AR must be reopened for updates. [Setup and privacy](docs/AR_VIEWER.md)
 
-The **Explore synthetic example** button uses fictional reference geometry,
-not detector results. Empty predictions do not establish that no branches exist.
-The layer toggle for direction arrows also controls estimated centerlines.
+## How the algorithm works—and why
 
-## CLI and saved outputs
+1. **Load CT + aorta mask.** SimpleITK preserves physical geometry so measurements remain meaningful across voxel sizes.
+2. **Adapt to contrast.** Compare inside/outside intensities, then grow connected blood-like regions. Distance and spill limits constrain leakage into nearby tissue.
+3. **Propose curved paths.** Wall-contact sampling, skeleton graphs and local searches find candidate branch openings and routes.
+4. **Cross-check.** Perpendicular CT sections, small CPU 3D neural networks and graph checks assess lumen support and direct connection, then group duplicate openings. Independent evidence helps reject false branches.
+5. **Measure.** Return eligible openings, seeds 5 mm along each path, local radii and directions—usable starting points for downstream tracking, without assuming a fixed branch count.
 
-```powershell
-.\.venv\Scripts\python.exe run.py --image "CT.nii.gz" --aorta-mask "aorta.nii.gz" --output "outputs/new-study/prediction.json" --case-id new-study
-```
+## Why 3D Slicer?
+Our teammate used Slicer during a hospital internship. Extensions let us redesign its UI while reusing medical-image loading, segmentation and linked views. Researchers can check predictions against the CT, not just trust a number.
 
-For development subject 21 add `--held-out-case 21`.
-`--no-neural` is an explicitly different diagnostic mode, not the evaluated
-AI-assisted configuration. Unsupported spacing is reported as lacking model evidence.
+## Results and limits
+The final development export matched **17 of 19 draft origins**, with two misses and one false positive: **94.4% precision, 89.5% recall, 91.9% F1** at a 3 mm matching tolerance. These five cases also informed development; this is **not independent clinical validation**. Inference runs locally on CPU after setup; AR sharing is optional and online. Research prototype only.
 
-For output `X/prediction.json`, keep `X/diagnostics/prediction.json` and
-`X/prediction_review/` with it to retain paths and provenance.
-JSON alone can be imported as markers without fabricating centerlines.
-Wait for successful process completion, not just JSON-file creation.
-The GUI exports the original challenge JSON. Its temporary run files are cleaned
-after import; in-memory paths remain visible. Use the CLI with a persistent output
-folder when you also need to retain the full review sidecars and analysis masks.
-
-Coordinates are physical LPS millimetres. Only the rendering adapter converts
-to Slicer RAS (-x, -y, z); JSON and radii are unchanged.
-The 2 mm origin-diameter eligibility filter is separate from radius at the 5 mm seed.
-
-## Models and data
-
-The ten supplied 76 KB checkpoints and two training manifests are tracked explicitly.
-Checksums/provenance: [config/models-manifest.json](config/models-manifest.json).
-Verify with `python scripts/verify_models.py`. Checkpoints load using
-`weights_only=True` on CPU; held-out training exclusions are checked.
-Do not replace them with freshly trained or random weights.
-
-Raw scans, handoff ZIPs, reference labels, probability volumes and local review
-results are not added by this integration. Historical Git LFS scan files remain
-in the existing repository history; use organizer/team data or Git LFS as needed.
-Only development prediction JSONs already published by the detector branch are
-included under `outputs/predictions/`.
-
-## Verification and limits
-
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-.\.venv\Scripts\python.exe -m unittest discover -s slicer-extension/tests -p test_*.py -v
-```
-
-See [master integration verification](docs/MASTER_INTEGRATION.md) for the measured
-local results and native Slicer smoke test. Passing tests are not anatomical validation.
-
-The teammate's development export reports 17/19 draft matches, one unmatched
-prediction and two misses on five tuned development cases at a 3 mm tolerance:
-94.4% precision, 89.5% recall, 91.9% F1. This is not hidden-test accuracy or
-accuracy across all 25 cases. Other cases lack reference comparisons.
-Graph-review budget limits and uncertain paths remain documented in
-[the detector method](docs/PIPELINE.md) and [challenge run guide](docs/CHALLENGE_RUN.md).
-
-## Preserved features and earlier implementation
-
-The existing GUI, readable JSON, opt-in phone/AR sharing and its platform
-limitations remain: [AR guide](docs/AR_VIEWER.md). AR needs internet and separate
-publisher configuration; ordinary inference stays offline after setup.
-
-The original classical implementation is preserved as `run_legacy.py` and its
-`src/pipeline.py` modules. `evaluate.py` remains the legacy batch evaluator;
-it is not the benchmark for the new detector.
-Existing inspection utilities and tests are retained. Older guides such as
-`PIPELINE_GUIDE.md`, `docs/INTEGRATION_STATUS.md` and `CLAUDE.md` describe
-the earlier implementation; this README is the current entry point.
-The offline teammate gallery requires separately supplied saved results; its
-launcher does not regenerate missing data.
+[Three-minute pitch + demo cues](docs/PITCH_SCRIPT.md) · [Method details](docs/PIPELINE.md) · [CLI/output guide](docs/CHALLENGE_RUN.md) · [Integration and verification](docs/MASTER_INTEGRATION.md)
