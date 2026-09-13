@@ -15,7 +15,10 @@ Slicer's 3D view still requires compatible graphics drivers/hardware.
 
 ## Install: one paste into Command Prompt
 
-The command downloads the installer from `master`.
+The command downloads the installer from `main`.
+The install location remains `%LOCALAPPDATA%\BranchForge`; changing the GitHub
+branch does not move scans or installed files. Releases are stored by commit SHA,
+and rerunning setup updates the desktop shortcut while retaining older releases.
 For stronger release reproducibility, replace the branch in the URL with a reviewed commit SHA
 and pass the same SHA as `-Ref` to the script.
 
@@ -24,7 +27,7 @@ and pass the same SHA as `-Ref` to the script.
 2. Copy this entire line, paste it, and press Enter:
 
 ```cmd
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $p=Join-Path $env:TEMP ('Install-BranchForge-'+[guid]::NewGuid()+'.ps1'); Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/Toastyybread1/toralis-challenge/master/scripts/Install-BranchForge.ps1' -OutFile $p; & $p"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $p=Join-Path $env:TEMP ('Install-BranchForge-'+[guid]::NewGuid()+'.ps1'); Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/Toastyybread1/toralis-challenge/main/scripts/Install-BranchForge.ps1' -OutFile $p; & $p"
 ```
 
 This downloads and executes the team's installer: only run it if you trust the

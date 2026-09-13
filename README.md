@@ -5,12 +5,30 @@ Discover where smaller arteries leave the aorta, then inspect the results in a p
 On a Windows x64 laptop with internet access, open **Command Prompt** and paste this command:
 
 ```cmd
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $p=Join-Path $env:TEMP ('Install-BranchForge-'+[guid]::NewGuid()+'.ps1'); Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/Toastyybread1/toralis-challenge/master/scripts/Install-BranchForge.ps1' -OutFile $p; & $p"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $p=Join-Path $env:TEMP ('Install-BranchForge-'+[guid]::NewGuid()+'.ps1'); Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/Toastyybread1/toralis-challenge/main/scripts/Install-BranchForge.ps1' -OutFile $p; & $p"
 ```
 
 It installs Slicer, an isolated Python environment and the supplied CPU models, then creates a desktop shortcut—no Git, GPU or training required.
 Open BranchForge, choose your CT and matching aorta mask, click **Load study**, then **Run detection**; scans are supplied separately.
 For development subjects 019–023, select that subject’s **held-out models** in Detect; see [Windows help](docs/WINDOWS_QUICKSTART.md) or [macOS/source setup](SLICER_GUIDE.md) if needed.
+
+## Terminal only — no Slicer required
+
+The same detector runs from the command line on CPU; the GUI is optional. Download the [main source ZIP](https://github.com/Toastyybread1/toralis-challenge/archive/refs/heads/main.zip), extract it, and open a terminal in the folder containing `run.py`.
+
+**One-time setup** (Python 3.12 or 3.13, internet required):
+
+```cmd
+python scripts/setup_environment.py
+```
+
+**One-line run on Windows** (replace the input filenames):
+
+```cmd
+.venv\Scripts\python.exe run.py --image "image.nii.gz" --aorta-mask "aorta_mask.nii.gz" --output "prediction.json"
+```
+
+On macOS/Linux use `.venv/bin/python` instead. With the environment activated, this is the PDF’s exact `python run.py --image ... --aorta-mask ... --output ...` interface; it runs offline after setup with the included models. For development subjects 019–023, add the matching flag, e.g. `--held-out-case 21`; omit it for unseen cases.
 
 ## What you can do
 

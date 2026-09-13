@@ -1,7 +1,7 @@
 # Required challenge interface
 
-Master integration: Python 3.12 CPU-only has also reproduced the supplied subject-21
-result. The ten required checkpoints and manifests are bundled on master; see
+Main release: Python 3.12 CPU-only has also reproduced the supplied subject-21
+result. The ten required checkpoints and manifests are bundled on main; see
 `config/models-manifest.json`. Recommended setup is `python scripts/setup_environment.py`,
 which uses the CPU PyTorch index on Windows/Linux, not the CUDA training index.
 

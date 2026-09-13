@@ -1,7 +1,7 @@
 # Windows PowerShell 5.1 compatible. Run as the normal Windows user, not administrator.
 [CmdletBinding()]
 param(
-    [string]$Ref = 'master',
+    [string]$Ref = 'main',
     [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'BranchForge'),
     [switch]$NoLaunch
 )
