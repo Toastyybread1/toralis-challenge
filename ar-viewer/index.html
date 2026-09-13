@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101c23" />
+    <meta name="referrer" content="no-referrer" />
+    <title>BranchForge · Spatial viewer</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 28V10M16 19L5 10M16 13L27 4' stroke='%2386e7bc' stroke-width='4' fill='none'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/" aria-label="BranchForge home"
+        ><span class="brand-icon">⑂</span> BranchForge<span class="tag"
+          >SPATIAL</span
+        ></a
+      ><span class="research">RESEARCH PREVIEW</span>
+    </header>
+    <main>
+      <section class="intro">
+        <p class="eyebrow">FROM SLICER. INTO YOUR SPACE.</p>
+        <h1>Anatomy, in perspective.</h1>
+        <p>The current BranchForge model, at its original anatomical scale.</p>
+      </section>
+      <section class="viewer-card" aria-label="Live anatomy viewer">
+        <div class="viewer-top">
+          <span id="connection" role="status" aria-live="polite"
+            >○ Not connected</span
+          ><span class="scale-badge">1:1 ANATOMICAL SCALE</span>
+        </div>
+        <model-viewer
+          id="anatomy"
+          alt="Current BranchForge aorta and visible branch markers"
+          camera-controls
+          touch-action="pan-y"
+          ar
+          ar-modes="webxr quick-look"
+          ar-scale="fixed"
+          shadow-intensity="0.6"
+          exposure="1.2"
+          camera-orbit="25deg 75deg auto"
+          interaction-prompt="auto"
+        >
+          <button slot="ar-button" id="ar-button">↗ View in your space</button>
+          <div slot="progress-bar" id="loading" hidden>Loading anatomy…</div>
+        </model-viewer>
+        <div id="empty">
+          <span class="empty-icon">⑂</span>
+          <h2>Bring your study into the room.</h2>
+          <p>
+            Open BranchForge in 3D Slicer, choose <strong>Share in AR</strong>,
+            and scan its QR code with your phone.
+          </p>
+          <span class="empty-note"
+            >Your scan stays private until you choose to share.</span
+          >
+        </div>
+        <div class="viewer-bottom">
+          <span>Drag to orbit · Pinch to inspect</span
+          ><button id="reset" disabled>Reset view ↺</button>
+        </div>
+      </section>
+      <section class="metrics" aria-label="Scene information">
+        <div>
+          <span>DETECTED BRANCHES</span><strong id="branches">—</strong>
+        </div>
+        <div>
+          <span>MODEL EXTENT · W × H × D</span
+          ><strong id="dimensions">— <small>cm</small></strong>
+        </div>
+        <div><span>SCENE REVISION</span><strong id="revision">—</strong></div>
+      </section>
+      <section class="notes">
+        <div>
+          <h2><span class="live-dot"></span> One scene. Two screens.</h2>
+          <p id="sync-note">
+            Visibility changes and detected markers follow the Slicer scene.
+            Compatible Android browsers support live WebXR AR. iPhone Quick Look
+            opens a snapshot—return here and reopen AR after a change.
+          </p>
+          <p id="notice" role="status"></p>
+        </div>
+        <div class="legend">
+          <span><i class="mint"></i> Parent aorta</span
+          ><span><i class="gold"></i> Origins & seeds</span
+          ><span><i class="blue"></i> Direction arrows & radius rings</span>
+        </div>
+      </section>
+      <details>
+        <summary>Scale, privacy & what these markers mean</summary>
+        <p>
+          Coordinates are converted from Slicer millimetres to metres without
+          enlarging the anatomy. AR is fixed at 100% scale; phone tracking is
+          not a calibrated measurement tool.
+        </p>
+        <p>
+          Arrows illustrate direction, rings illustrate estimated radii, and B1,
+          B2… label branch rows. They are not complete daughter-vessel surfaces.
+          CT slices, patient identifiers and raw JSON are not shared.
+        </p>
+        <p>
+          Anyone with this unguessable QR link can view and potentially save the
+          geometry. Access expires after one hour or when the publisher revokes
+          it. Revocation cannot erase a snapshot already downloaded to a phone.
+          Share only approved, de-identified demonstration data.
+        </p>
+      </details>
+    </main>
+    <footer>
+      <span>BRANCHFORGE / TORALIS BRANCHSEED CHALLENGE</span
+      ><span>Not for clinical use.</span>
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

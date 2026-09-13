@@ -89,7 +89,8 @@ QTableWidget::item { border-bottom: 1px solid #16202E; padding: 6px 8px; }
 QTableWidget::item:hover { background: #142033; }
 QTableWidget::item:selected { background: #173F36; color: #EEF3F9; }
 QHeaderView::section { background: #111A2A; color: #64758B; border: none; border-bottom: 1px solid #1E2A3C; padding: 8px 8px; font-family: "Segoe UI Variable Text"; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; }
-QTextEdit#BFJson { background: #0A111B; border: 1px solid #1E2A3C; border-radius: 10px; padding: 8px; color: #9FB0C4; selection-background-color: #23A882; }
+QPlainTextEdit#BFJson { background: #0A111B; border: 1px solid #1E2A3C; border-radius: 10px; padding: 8px; color: #9FB0C4; selection-background-color: #23A882; font-family: "Cascadia Mono", "Menlo", monospace; font-size: 11px; }
+QTextBrowser#BFReadable { background: #101D2A; border: 1px solid #284035; border-radius: 10px; padding: 10px; color: #D5E8DF; font-size: 12px; selection-background-color: #23A882; }
 QPlainTextEdit#BFLog { background: #0A111B; color: #9FB0C4; border: 1px solid #1E2A3C; border-radius: 10px; padding: 8px; font-family: "Cascadia Mono"; font-size: 11px; }
 
 /* Chrome */

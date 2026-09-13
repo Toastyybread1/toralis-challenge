@@ -17,6 +17,8 @@ from BranchForgeLib import ui
 from BranchForgeLib.contract import discover_cases, load_prediction, lps_to_ras, save_prediction, validate_prediction
 from BranchForgeLib.scene import AORTA_COLOR, BranchScene, COLORS
 from BranchForgeLib.integration import detector_paths, detection_arguments
+from BranchForgeLib.report import prediction_html
+from BranchForgeLib.ar_share import SharingController
 from BranchForgeLib.sample import create_sample
 from BranchForgeLib.ui import button, card, divider, label
 
@@ -90,6 +92,7 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.build_panel()
         self.build_inspector()
         self.build_header()
+        self.ar_sharing = SharingController(self)
         self.scene_observer = slicer.mrmlScene.AddObserver(slicer.mrmlScene.StartCloseEvent, self.on_scene_close)
         self.scene_closed_observer = slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.on_scene_closed)
         self.load_local_catalog()
@@ -324,18 +327,38 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         warning_layout.addWidget(label("SYNTHETIC EXAMPLE / reference geometry\nNo detection algorithm has been run.", "BFWarningText", True), 1)
         layout.addWidget(self.sample_warning)
         self.sample_warning.hide()
-        self.result_nav = ui.Segmented([("Branches", None), ("Details", None), ("JSON", None)], lambda i: self.tabs.setCurrentIndex(i), height=34)
+        self.result_nav = ui.Segmented([("Branches", None), ("Details", None), ("JSON", None), ("AR", None)], lambda i: self.tabs.setCurrentIndex(i), height=34)
         layout.addWidget(self.result_nav)
         self.tabs = qt.QStackedWidget()
         self.tabs.connect("currentChanged(int)", lambda i: self.result_nav.set_index(i, notify=False))
+        self.tabs.connect("currentChanged(int)", self.on_results_tab_changed)
         layout.addWidget(self.tabs, 1)
         self.build_branches_tab()
         self.build_details_tab()
-        self.json_view = qt.QTextEdit()
+        report_scroll = qt.QScrollArea()
+        report_scroll.setWidgetResizable(True)
+        report_scroll.setFrameShape(qt.QFrame.NoFrame)
+        report_scroll.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
+        report_page = qt.QWidget()
+        report_layout = qt.QVBoxLayout(report_page)
+        report_layout.setContentsMargins(0, 0, 0, 0)
+        report_layout.addWidget(label("READABLE RESULTS", "BFEyebrow"))
+        self.readable_view = qt.QTextBrowser()
+        self.readable_view.setObjectName("BFReadable")
+        self.readable_view.setOpenExternalLinks(False)
+        self.readable_view.setHtml(prediction_html(None))
+        self.readable_view.setMinimumHeight(180)
+        report_layout.addWidget(self.readable_view, 3)
+        report_layout.addWidget(label("RAW JSON  /  ORIGINAL OUTPUT", "BFEyebrow"))
+        self.json_view = qt.QPlainTextEdit()
         self.json_view.setObjectName("BFJson")
         self.json_view.setReadOnly(True)
+        self.json_view.setMinimumHeight(160)
         self.json_view.setPlaceholderText("Prediction JSON appears here.\n\nPhysical coordinates stay in SimpleITK's LPS convention.")
-        self.tabs.addWidget(self.json_view)
+        report_layout.addWidget(self.json_view, 2)
+        report_scroll.setWidget(report_page)
+        self.tabs.addWidget(report_scroll)
+        self.build_ar_tab()
         self.selection_summary = label("Select a branch. Geometry is in Details.", "BFMuted", True)
         layout.addWidget(self.selection_summary)
         self.export_button = button("Export prediction JSON", self.export_results, "primary", "export", "Save the prediction exactly as received, in SimpleITK physical coordinates (Ctrl+E)")
@@ -351,6 +374,85 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.inspector_dock.setWidget(self.inspector)
         slicer.util.mainWindow().addDockWidget(qt.Qt.RightDockWidgetArea, self.inspector_dock)
         self.inspector_dock.hide()
+
+    def build_ar_tab(self):
+        scroll = qt.QScrollArea()
+        self.ar_scroll = scroll
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(qt.QFrame.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
+        body = qt.QWidget()
+        layout = qt.QVBoxLayout(body)
+        layout.setContentsMargins(0, 8, 4, 8)
+        layout.setSpacing(10)
+        layout.addWidget(label("YOUR ANATOMY. IN YOUR SPACE.", "BFEyebrow"))
+        layout.addWidget(label("Share in AR", "BFDetailTitle"))
+        self.ar_qr = qt.QLabel()
+        self.ar_qr.setAlignment(qt.Qt.AlignCenter)
+        layout.addWidget(self.ar_qr)
+        self.ar_status = label("Sharing is off. Nothing is uploaded.", "BFHint", True)
+        layout.addWidget(self.ar_status)
+        layout.addWidget(label("Scan a QR code to open the visible model and markers on your phone, at anatomical size.", "BFHint", True))
+        connection_body = qt.QWidget()
+        connection_layout = qt.QVBoxLayout(connection_body)
+        connection_layout.setContentsMargins(0, 0, 0, 0)
+        connection_layout.addWidget(label("VERCEL VIEWER URL", "BFEyebrow"))
+        self.ar_url = qt.QLineEdit()
+        self.ar_url.setPlaceholderText("https://your-ar-viewer.vercel.app")
+        self.ar_url.setText(self.settings.value("BranchForge/ARUrl", ""))
+        host_file = self.repo / "slicer-extension" / "ar-host.json"
+        if host_file.is_file() and not self.ar_url.text:
+            self.ar_url.setText(json.loads(host_file.read_text(encoding="utf-8"))["url"])
+        connection_layout.addWidget(self.ar_url)
+        connection_layout.addWidget(label("PUBLISHER KEY  /  NEVER IN THE QR", "BFEyebrow"))
+        self.ar_key = qt.QLineEdit()
+        self.ar_key.setEchoMode(qt.QLineEdit.Password)
+        self.ar_key.setPlaceholderText("Publisher key from your website setup")
+        key_file = self.repo / "slicer-extension" / "artifacts" / "ar" / "publisher-key.txt"
+        if key_file.is_file():
+            self.ar_key.setText(key_file.read_text(encoding="utf-8").strip())
+        connection_layout.addWidget(self.ar_key)
+        self.ar_connection = ui.Collapsible("Website connection settings", connection_body,
+                                            expanded=not bool(self.ar_url.text and self.ar_key.text))
+        layout.addWidget(self.ar_connection)
+        self.ar_consent = qt.QCheckBox("Approved de-identified demo data")
+        layout.addWidget(self.ar_consent)
+        layout.addWidget(label("Uploads visible surfaces and markers, not CT voxels or study names. Anyone with the QR link can view/save them. Expires in 1 hour. Do not share identifiable patient data.", "BFHint", True))
+        self.ar_start = button("Start sharing & show QR", self.start_ar_sharing, "primary")
+        layout.addWidget(self.ar_start)
+        self.ar_link = None
+        self.ar_copy = button("Copy phone link", self.copy_ar_link, "secondary")
+        self.ar_copy.setEnabled(False)
+        layout.addWidget(self.ar_copy)
+        self.ar_stop = button("Stop sharing / revoke link", lambda: self.ar_sharing.stop(), "ghost")
+        self.ar_stop.setEnabled(False)
+        layout.addWidget(self.ar_stop)
+        layout.addWidget(label("Android: live AR with a compatible WebXR browser.\n\niPhone: live webpage + Quick Look AR snapshot. Return to the webpage and reopen AR after changes.\n\nArrows and rings are illustrative markers, not full daughter-vessel surfaces. Downloaded snapshots cannot be revoked.", "BFHint", True))
+        layout.addStretch(1)
+        scroll.setWidget(body)
+        self.tabs.addWidget(scroll)
+
+    def start_ar_sharing(self):
+        def start():
+            if not self.ar_consent.checked:
+                raise ValueError("Confirm that this is de-identified demonstration geometry you are allowed to share.")
+            self.ar_sharing.start(self.ar_url.text, self.ar_key.text)
+            self.settings.setValue("BranchForge/ARUrl", self.ar_url.text.strip())
+        self.guard(start)
+
+    def copy_ar_link(self):
+        if self.ar_link:
+            slicer.app.clipboard().setText(self.ar_link)
+            self.notify("Phone viewing link copied", "success")
+
+    def on_results_tab_changed(self, index):
+        # Give the QR space on short/high-DPI screens. JSON actions remain on other tabs.
+        for name in ("selection_summary", "export_button", "capture_button", "copy_button"):
+            widget = getattr(self, name, None)
+            if widget is not None:
+                widget.setVisible(index != 3)
+        if index == 3 and getattr(self, "ar_link", None):
+            qt.QTimer.singleShot(0, lambda: self.ar_scroll.ensureWidgetVisible(self.ar_qr, 0, 8))
 
     def build_branches_tab(self):
         self.table_stack = qt.QStackedWidget()
@@ -586,8 +688,9 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
             node.SetBackgroundColor2(.075, .11, .16)
             node.SetBoxVisible(False)
             node.SetAxisLabelsVisible(False)
-            node.SetOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeAxes)
-            node.SetOrientationMarkerSize(slicer.vtkMRMLAbstractViewNode.OrientationMarkerSizeSmall)
+            # The human figure rotates with the camera and tells the viewer at a glance which way the patient faces.
+            node.SetOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeHuman)
+            node.SetOrientationMarkerSize(slicer.vtkMRMLAbstractViewNode.OrientationMarkerSizeMedium)
             widget.threeDController().hide()
         for name in lm.sliceViewNames():
             widget = lm.sliceWidget(name)
@@ -648,6 +751,8 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.shortcuts = []
 
     def close_workspace(self):
+        if hasattr(self, "ar_sharing") and self.ar_sharing.enabled:
+            self.ar_sharing.stop()
         if not self.workspace_open:
             return
         self.workspace_open = False
@@ -833,6 +938,7 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.details_empty.set_text("Select a branch", "Click a row to inspect its origin, seed, direction and radius. The CT slices jump to its opening.", "target")
         self.count_label.set_value(None)
         self.json_view.setPlainText("")
+        self.readable_view.setHtml(prediction_html(None))
         self.source_pill.setText("Awaiting a prediction", "muted")
         self.sample_warning.hide()
         self.detail_title.setText("Select a branch")
@@ -884,7 +990,8 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.source_pill.setText(source, tone)
         self.sample_warning.setVisible(self.synthetic)
         self.count_label.set_value(len(data["daughters"]))
-        self.json_view.setHtml(ui.json_html(json.dumps(data, indent=2, allow_nan=False)))
+        self.readable_view.setHtml(prediction_html(data, self.synthetic))
+        self.json_view.setPlainText(json.dumps(data, indent=2, allow_nan=False))
         self.table.blockSignals(True)
         self.table.setRowCount(len(data["daughters"]))
         for i, branch in enumerate(data["daughters"]):
@@ -1185,6 +1292,8 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
     # ------------------------------------------------------------------ scene lifecycle
 
     def on_scene_close(self, caller=None, event=None):
+        if hasattr(self, "ar_sharing"):
+            self.ar_sharing.stop()
         if self.process:
             self.cancel_run()
         ui.stop(self.pulse)
@@ -1204,6 +1313,7 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
             qt.QTimer.singleShot(0, self.configure_views)
 
     def cleanup(self):
+        self.ar_sharing.cleanup()
         self.close_workspace()
         self.elapsed_timer.stop()
         if self.process:

@@ -1,0 +1,22 @@
+{
+  "name": "branchforge-ar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "build": "vite build",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@google/model-viewer": "4.3.1",
+    "@upstash/redis": "1.38.4",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "vite": "8.3.0"
+  }
+}

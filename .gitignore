@@ -9,3 +9,10 @@ wheelhouse/
 /data/
 /toralis-dataset/
 .claude/
+node_modules/
+ar-viewer/dist/
+.vercel/
+.env*
+!.env.example
+ar-viewer/.agents/
+ar-viewer/skills-lock.json

@@ -7,6 +7,9 @@ set(MODULE_PYTHON_SCRIPTS
   BranchForgeLib/scene.py
   BranchForgeLib/sample.py
   BranchForgeLib/ui.py
+  BranchForgeLib/report.py
+  BranchForgeLib/ar_export.py
+  BranchForgeLib/ar_share.py
 )
 file(GLOB MODULE_ICON_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Resources/Icons/*.svg)
 set(MODULE_PYTHON_RESOURCES

@@ -3,7 +3,13 @@
 This integration combines the team's CPU-only Python/SimpleITK branch detector
 with the redesigned native 3D Slicer extension. The GUI invokes the actual
 detector asynchronously; JSON and visual markers use the same prediction.
-No web service, GPU, MCP bridge or Slicer rebuild is required.
+No web service, GPU, MCP bridge or Slicer rebuild is required for detection.
+
+The **JSON** tab now includes a readable report above the unchanged raw JSON.
+Optional **AR** sharing sends visible geometry to a live phone viewer, with a QR
+code, life-size anatomical units and expiring links. This opt-in feature requires
+internet; it does not change the offline detector. See [the AR setup and platform
+guide](docs/AR_VIEWER.md), especially the iPhone Quick Look snapshot limitation.
 
 ## Set up (once)
 
