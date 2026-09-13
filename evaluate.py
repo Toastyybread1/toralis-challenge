@@ -41,7 +41,7 @@ def main():
             results.append(row)
             print(f"{folder.name}: FAILED: {error}", flush=True)
             continue
-        command = [sys.executable, str(Path(__file__).with_name("run.py")),
+        command = [sys.executable, str(Path(__file__).with_name("run_legacy.py")),
                    "--image", str(ct), "--aorta-mask", str(mask),
                    "--output", str(output / "prediction.json"), "--case-id", folder.name,
                    "--diagnostics", str(output / "diagnostics.json")]

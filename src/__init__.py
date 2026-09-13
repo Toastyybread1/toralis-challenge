@@ -1,1 +1,1 @@
-"""CPU-only Toralis branch detection baseline."""
+"""Branchseed CPU detector implementation."""

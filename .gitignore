@@ -16,3 +16,8 @@ ar-viewer/dist/
 !.env.example
 ar-viewer/.agents/
 ar-viewer/skills-lock.json
+/models/
+/references/
+/results/
+/tmp/
+/codex check this/

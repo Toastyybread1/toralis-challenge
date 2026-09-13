@@ -1,0 +1,66 @@
+{
+  "source_commit": "7296590e939162c10e982858807a2f139800cdda",
+  "warning": "Draft-trained development models, not independently clinically validated. Scan-derived volumes are not bundled.",
+  "files": [
+    {
+      "path": "models/learned_2000_results/held_out_19/model.pt",
+      "bytes": 76443,
+      "sha256": "a07c93a225f4b3baf786911d5ba1892cd07de4e01a2f6e8b03df4d4ce091ba72"
+    },
+    {
+      "path": "models/learned_2000_results/held_out_20/model.pt",
+      "bytes": 76443,
+      "sha256": "40d5b6ac3d3bb75f91b7d36010f5c232e2c01236a56dc43729f776a2e4d11a93"
+    },
+    {
+      "path": "models/learned_2000_results/held_out_21/model.pt",
+      "bytes": 76443,
+      "sha256": "0e6233fc32c30bc3f136a8402d9bd776d42be80ba5531126f8f3ecac0a7f68a9"
+    },
+    {
+      "path": "models/learned_2000_results/held_out_22/model.pt",
+      "bytes": 76443,
+      "sha256": "85dbb05155b970aa65cb4067caf722efd8d8a57c18f8cd46df240f487c0699ef"
+    },
+    {
+      "path": "models/learned_2000_results/held_out_23/model.pt",
+      "bytes": 76443,
+      "sha256": "71cdb5fa815af04b73720bae10d9618c715bcb8663d57740dc34e0f2ef15155a"
+    },
+    {
+      "path": "models/learned_2000_results/training_manifest.json",
+      "bytes": 956,
+      "sha256": "3626c49b975e18988ae52ab7be86165bccfcefa0a3bfde7123a0987080abd763"
+    },
+    {
+      "path": "models/learned_results/held_out_19/model.pt",
+      "bytes": 76443,
+      "sha256": "5bfd670b737b48a0529211361248496f1bca82bb2546d306feb1f890fa7dc528"
+    },
+    {
+      "path": "models/learned_results/held_out_20/model.pt",
+      "bytes": 76443,
+      "sha256": "b143d2173d61a35a8de3d6125bed3273a925e65ba0ffe2ee93495d7b79f63d3c"
+    },
+    {
+      "path": "models/learned_results/held_out_21/model.pt",
+      "bytes": 76443,
+      "sha256": "bb8f23642c4a4c2d5474766cc9900afd114e135d1bbcf2a591c0cc926848c423"
+    },
+    {
+      "path": "models/learned_results/held_out_22/model.pt",
+      "bytes": 76443,
+      "sha256": "4f29634e32fc297c64cd5e7227562ddd20e35b86196f6126d75e675dfb756b22"
+    },
+    {
+      "path": "models/learned_results/held_out_23/model.pt",
+      "bytes": 76443,
+      "sha256": "c2810130880c734950ef675c028d9d147561cd876f64d811c9a4f7b0f15830e3"
+    },
+    {
+      "path": "models/learned_results/training_manifest.json",
+      "bytes": 956,
+      "sha256": "3626c49b975e18988ae52ab7be86165bccfcefa0a3bfde7123a0987080abd763"
+    }
+  ]
+}

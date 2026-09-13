@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "accuracy_validated": false,
+  "branches": 4,
+  "actual_centerlines": 4,
+  "exact_reference_json": true,
+  "ras_markers_verified": true,
+  "responsive_event_ticks": 2322,
+  "seconds": 38.7339999997057,
+  "slicer_version": "5.12.4",
+  "path_source_ids": {
+    "branch_001": "candidate_0014",
+    "branch_002": "candidate_0002",
+    "branch_003": "candidate_0010",
+    "branch_004": "origin_review_0012"
+  }
+}

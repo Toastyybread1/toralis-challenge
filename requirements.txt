@@ -1,6 +1,2 @@
-SimpleITK==2.5.6
-numpy==2.5.3
-matplotlib==3.11.2
-scipy==1.18.1
-scikit-image==0.26.0
-nibabel==5.4.2
+# Classical dependencies; scripts/setup_environment.py also installs CPU PyTorch.
+-r config/requirements.txt

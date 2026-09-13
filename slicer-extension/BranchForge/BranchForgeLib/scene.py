@@ -1,11 +1,13 @@
 """Rendering adapter. All MRML coordinates are RAS, all result data stays LPS."""
 
 import math
+import tempfile
 import numpy as np
 import slicer
 import vtk
 
 from .contract import lps_to_ras
+from .input_files import display_input_path
 from .ui import fly_camera
 
 COLORS = [(1.0, .66, .43), (.53, .74, 1.0), (.82, .65, 1.0), (1.0, .80, .42), (.43, .87, .90), (1.0, .52, .65)]
@@ -25,9 +27,11 @@ class BranchScene:
         self.seed_points = None
         self.arrows = []
         self.radii = []
+        self.paths = []
         self.selected = None
         self.mask_voxels = 0
         self.mask_volume_ml = 0.0
+        self.input_cache = None
 
     def own(self, node, branch=False):
         node.SetAttribute("BranchForge.Owned", "1")
@@ -52,6 +56,7 @@ class BranchScene:
     def clear_results(self):
         self.remove_nodes(self.branch_nodes)
         self.arrows, self.radii = [], []
+        self.paths = []
         self.points = self.seed_points = None
         self.selected = None
 
@@ -59,13 +64,19 @@ class BranchScene:
         self.clear_results()
         self.remove_nodes(self.nodes)
         self.ct = self.aorta = self.preview = None
+        if self.input_cache is not None:
+            self.input_cache.cleanup()
+            self.input_cache = None
 
     def load_case(self, image_path, mask_path):
         """Build transactionally: keep the current study if the new files are invalid."""
         new = BranchScene()
         try:
-            new.ct = new.own(slicer.util.loadVolume(image_path, {"name": "CT", "show": False}))
-            label = new.own(slicer.util.loadLabelVolume(mask_path, {"name": "Aorta input", "show": False}))
+            new.input_cache = tempfile.TemporaryDirectory(prefix='branchforge-display-')
+            display_image = display_input_path(image_path, new.input_cache.name)
+            display_mask = display_input_path(mask_path, new.input_cache.name)
+            new.ct = new.own(slicer.util.loadVolume(display_image, {"name": "CT", "show": False}))
+            label = new.own(slicer.util.loadLabelVolume(display_mask, {"name": "Aorta input", "show": False}))
             if new.ct.GetImageData().GetDimensions() != label.GetImageData().GetDimensions():
                 raise ValueError("CT and mask dimensions differ. Choose the matching pair.")
             image_matrix, mask_matrix = vtk.vtkMatrix4x4(), vtk.vtkMatrix4x4()
@@ -180,7 +191,7 @@ class BranchScene:
         display.SetPower(28)
         return node
 
-    def render_results(self, data):
+    def render_results(self, data, paths=None):
         self.clear_results()
         self.points = self.own(slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Branch origins"), True)
         self.seed_points = self.own(slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Daughter seeds"), True)
@@ -200,6 +211,27 @@ class BranchScene:
             direction = np.array(lps_to_ras(branch["direction_xyz"]), dtype=float)
             direction /= np.linalg.norm(direction)
             color = COLORS[i % len(COLORS)]
+            evidence = (paths or {}).get(branch['instance_id'])
+            if evidence:
+                points = vtk.vtkPoints()
+                line = vtk.vtkPolyLine()
+                line.GetPointIds().SetNumberOfIds(len(evidence['path_xyz_mm']))
+                for j, point in enumerate(evidence['path_xyz_mm']):
+                    points.InsertNextPoint(*lps_to_ras(point))
+                    line.GetPointIds().SetId(j, j)
+                cells = vtk.vtkCellArray()
+                cells.InsertNextCell(line)
+                poly = vtk.vtkPolyData()
+                poly.SetPoints(points)
+                poly.SetLines(cells)
+                tube = vtk.vtkTubeFilter()
+                tube.SetInputData(poly)
+                tube.SetRadius(.22)  # Display thickness only, not the vessel radius.
+                tube.SetNumberOfSides(10)
+                tube.Update()
+                node = self.model(tube.GetOutput(), branch['instance_id'] + ' estimated centerline', color)
+                node.SetAttribute('BranchForge.SourceCandidate', evidence['source_candidate'])
+                self.paths.append(node)
             self.points.AddControlPoint(vtk.vtkVector3d(*start), branch["instance_id"])
             self.seed_points.AddControlPoint(vtk.vtkVector3d(*seed), "")
             # VTK arrows start at the origin and point along +X. Build an orthonormal basis.
@@ -264,6 +296,8 @@ class BranchScene:
         if self.seed_points:
             self.seed_points.GetDisplayNode().SetVisibility(origins)
         for node in self.arrows:
+            node.GetDisplayNode().SetVisibility(arrows)
+        for node in self.paths:
             node.GetDisplayNode().SetVisibility(arrows)
         for node in self.radii:
             node.GetDisplayNode().SetVisibility(radii)

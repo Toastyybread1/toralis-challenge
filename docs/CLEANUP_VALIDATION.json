@@ -1,0 +1,8 @@
+{
+  "active_tests_passed": 125,
+  "layout": "src/models/references/results/outputs",
+  "all25_exported_jsons_byte_identical": true,
+  "cli_cases_21_24_and_masks_unchanged": true,
+  "historical_backup": "../_branchseed_history_20260913",
+  "anatomical_accuracy_changed": false
+}

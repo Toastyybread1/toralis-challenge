@@ -1,7 +1,7 @@
 # Windows PowerShell 5.1 compatible. Run as the normal Windows user, not administrator.
 [CmdletBinding()]
 param(
-    [string]$Ref = 'integration/branchforge-working',
+    [string]$Ref = 'master',
     [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'BranchForge'),
     [switch]$NoLaunch
 )
@@ -62,8 +62,9 @@ function Install-BranchForge {
     $app = Join-Path $root "releases\$revision"
     $files = @($tree.tree | Where-Object {
         $_.type -eq 'blob' -and (
-            $_.path -match '^(src/|slicer-extension/BranchForge/|slicer-extension/scripts/)' -or
-            $_.path -in @('run.py', 'requirements.txt', 'scripts/setup_environment.py', 'slicer-extension/Launch-BranchForge.ps1')
+            $_.path -match '^(src/|config/|slicer-extension/BranchForge/|slicer-extension/scripts/)' -or
+            $_.path -match '^models/(learned_results|learned_2000_results)/(held_out_(19|20|21|22|23)/model\.pt|training_manifest\.json)$' -or
+            $_.path -in @('run.py', 'requirements.txt', 'scripts/setup_environment.py', 'scripts/verify_models.py', 'config/models-manifest.json', 'slicer-extension/Launch-BranchForge.ps1')
         )
     })
     if ($files.Count -lt 10) { throw 'The selected revision does not contain the expected application.' }

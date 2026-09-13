@@ -153,7 +153,7 @@ class IntegrationTests(unittest.TestCase):
         self.assertIn("mask_volume_change_percent", json.loads((output / "statistics.json").read_text()))
         for name in ("original.png", "cropped.png", "orthogonal.png"):
             self.assertGreater((output / name).stat().st_size, 1000)
-        result = self.command("run.py", *args, "--output", output / "prediction.json")
+        result = self.command("run_legacy.py", *args, "--output", output / "prediction.json")
         self.assertEqual(result.returncode, 0, result.stderr)
         validate_prediction(json.loads((output / "prediction.json").read_text()))
 

@@ -13,9 +13,14 @@ def detector_paths(repo, saved_python="", saved_script=""):
     return executable, script
 
 
-def detection_arguments(script, image, mask, output, case_id):
+def detection_arguments(script, image, mask, output, case_id, held_out_case=None):
     if not isinstance(case_id, str) or not case_id.strip():
         raise ValueError("A nonempty loaded case ID is required.")
-    return [str(Path(script).resolve()), "--image", str(Path(image).resolve()),
+    arguments = [str(Path(script).resolve()), "--image", str(Path(image).resolve()),
             "--aorta-mask", str(Path(mask).resolve()), "--output", str(Path(output).resolve()),
             "--case-id", case_id]
+    if held_out_case is not None:
+        if held_out_case not in range(19, 24):
+            raise ValueError("Held-out development case must be 19-23")
+        arguments += ["--held-out-case", str(held_out_case)]
+    return arguments

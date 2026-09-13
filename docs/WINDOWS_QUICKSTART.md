@@ -15,7 +15,7 @@ Slicer's 3D view still requires compatible graphics drivers/hardware.
 
 ## Install: one paste into Command Prompt
 
-The command downloads the installer from `integration/branchforge-working`.
+The command downloads the installer from `master`.
 For stronger release reproducibility, replace the branch in the URL with a reviewed commit SHA
 and pass the same SHA as `-Ref` to the script.
 
@@ -24,7 +24,7 @@ and pass the same SHA as `-Ref` to the script.
 2. Copy this entire line, paste it, and press Enter:
 
 ```cmd
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $p=Join-Path $env:TEMP ('Install-BranchForge-'+[guid]::NewGuid()+'.ps1'); Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/Toastyybread1/toralis-challenge/integration/branchforge-working/scripts/Install-BranchForge.ps1' -OutFile $p; & $p"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $p=Join-Path $env:TEMP ('Install-BranchForge-'+[guid]::NewGuid()+'.ps1'); Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/Toastyybread1/toralis-challenge/master/scripts/Install-BranchForge.ps1' -OutFile $p; & $p"
 ```
 
 This downloads and executes the team's installer: only run it if you trust the
@@ -34,7 +34,8 @@ organization security controls to get around a block.
 
 The script downloads application code **without the large medical dataset**,
 installs/reuses Slicer **5.12.4** and standard per-user Python **3.12**, installs
-the detector's pinned packages in its own `.venv`, verifies package imports,
+the detector's pinned packages and CPU PyTorch in its own `.venv`, includes and
+verifies ten supplied model checkpoints, checks package imports,
 creates a **BranchForge** desktop shortcut, and opens the extension.
 It checks Slicer's published SHA512 and Python's publisher signature before
 executing installers. It does not install detector packages into Slicer's Python.
@@ -79,7 +80,9 @@ TORALIS CHALLENGE/
    the subject folders. Choose a subject. Alternatively, browse to the CT and mask
    separately. Both `.nii` and `.nii.gz` are supported.
 2. Click **Load study** and wait for the scan to appear.
-3. Check the Detect panel shows a connected pipeline, then click **Run detection**.
+3. Check the Detect panel shows a connected pipeline. For development subjects
+   019-023 select the matching **held-out models** option; otherwise use **Unseen
+   study - all models**. Then click **Run detection**.
 4. Inspect the predicted branches in 3D and the readable report/raw JSON.
    Empty predictions mean no branches were detected, not proof none exist.
 
@@ -109,7 +112,7 @@ Rerunning setup resolves the selected branch again. A new commit gets a separate
 release directory/environment; existing release files and scans are not deleted.
 The desktop shortcut is updated only after successful dependency checks. Old
 releases can consume disk space. This is an installation copy, not a Git checkout.
-The installer does not configure AR publishing credentials or upload scans.
+The installer includes inference weights, but does not configure AR publishing credentials or upload scans.
 Offline detection works after setup; optional phone/AR sharing needs separate setup.
 
 ## Verification status
@@ -118,7 +121,9 @@ Checked on the development machine: Windows PowerShell 5.1 parsing, Git blob
 integrity helper against `git hash-object --no-filters`, GitHub revision/tree
 availability, official Slicer/Python download responses, and compatible Windows
 wheel availability for all six pinned dependencies (SimpleITK uses a compatible
-CPython stable-ABI wheel). No fresh-machine installation was performed.
+CPython stable-ABI wheel). The combined detector additionally passed the local CPU model/GUI checks documented
+in [master integration verification](MASTER_INTEGRATION.md). No fresh-machine
+installation was performed.
 
 The installer must be tested on a clean Windows laptop/VM before calling it a
 fully verified one-click release. Syntax/helper checks on the development machine

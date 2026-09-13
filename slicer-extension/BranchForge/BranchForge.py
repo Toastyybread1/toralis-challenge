@@ -20,6 +20,7 @@ from BranchForgeLib.integration import detector_paths, detection_arguments
 from BranchForgeLib.report import prediction_html
 from BranchForgeLib.ar_share import SharingController
 from BranchForgeLib.sample import create_sample
+from BranchForgeLib.paths import load_path_evidence
 from BranchForgeLib.ui import button, card, divider, label
 
 LAYOUT_ID = 814
@@ -128,7 +129,7 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         outer.addWidget(label("BranchForge  /  Built on 3D Slicer", "BFFooter"))
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.panel, 1)
-        self.control_widgets += [self.case_combo, self.catalog_button, self.image_edit, self.mask_edit, self.case_edit, self.load_button, self.sample_button, self.import_button, self.python_edit, self.pipeline_edit]
+        self.control_widgets += [self.case_combo, self.catalog_button, self.image_edit, self.mask_edit, self.case_edit, self.load_button, self.sample_button, self.import_button, self.python_edit, self.pipeline_edit, self.fold_combo]
 
     def page(self):
         scroll = qt.QScrollArea()
@@ -206,6 +207,14 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         config_layout.addWidget(label("Uses the bundled detector in .venv. Run scripts/setup_environment.py first.\nRuns separately; includes the loaded case ID.", "BFHint", True))
         self.pipeline_section = ui.Collapsible("Connect your team's run.py", config)
         body.addWidget(self.pipeline_section)
+        self.fold_combo = qt.QComboBox()
+        self.fold_combo.setSizePolicy(qt.QSizePolicy.Ignored, qt.QSizePolicy.Fixed)
+        self.fold_combo.setMinimumWidth(0)
+        self.fold_combo.addItem("Unseen study - all models")
+        for fold in range(19, 24):
+            self.fold_combo.addItem(f"Subject {fold:03d} - held-out models")
+        body.addWidget(self.fold_combo)
+        body.addWidget(label("Subjects 019-023: choose held-out models.\nCase ID does not choose the model fold.", "BFHint", True))
         layout.addWidget(frame)
         run_row = qt.QHBoxLayout()
         run_row.setSpacing(8)
@@ -976,16 +985,19 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
 
     def import_prediction_path(self, path):
         data = load_prediction(path, self.loaded_case)
-        self.apply_prediction(data, "Imported  " + Path(path).name, "blue")
+        paths, note = load_path_evidence(path, data)
+        self.apply_prediction(data, "Imported  " + Path(path).name, "blue", paths, note)
         self.notify(f"Imported {len(data['daughters'])} branches", "success", f"Imported {len(data['daughters'])} branches. Select a row to inspect.")
 
-    def apply_prediction(self, data, source, tone="blue"):
+    def apply_prediction(self, data, source, tone="blue", paths=None, path_note=""):
         data = validate_prediction(data, self.loaded_case)
         if not self.scene.ct:
             raise ValueError("Load the matching study first.")
         ui.stop(self.pulse)
         self.pulse = None
-        self.scene.render_results(data)
+        self.path_evidence = paths or {}
+        self.path_note = path_note
+        self.scene.render_results(data, self.path_evidence)
         self.prediction = data
         self.source_pill.setText(source, tone)
         self.sample_warning.setVisible(self.synthetic)
@@ -1034,6 +1046,12 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         self.chord_value.setText(f"Straight-line origin to seed: {chord:.2f} mm. The challenge seed sits 5 mm along the vessel path, which can be longer than this chord.")
         self.details_stack.setCurrentIndex(1)
         self.selection_summary.setText(f"{branch['instance_id']}  ·  radius {branch['radius_mm']:.2f} mm  ·  chord {chord:.2f} mm\nSlices centred on its origin. Double-click to fly there.")
+        evidence = self.path_evidence.get(branch['instance_id'])
+        if evidence:
+            self.selection_summary.setText(self.selection_summary.text +
+                f"\nActual trace: {evidence['path_length_mm']:.2f} mm; "
+                f"{evidence.get('tracking_status') or 'status unspecified'}; "
+                f"stop: {evidence.get('stop_reason') or 'unspecified'}\n{self.path_note}")
         ui.stop(self.pulse)
         self.scene.highlight(index, self.prediction)
         self.pulse = ui.pulse_opacity(self.scene.selected_displays())
@@ -1207,7 +1225,8 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
         if self.toast is not None and self.workspace_open:
             self.toast.show_message("Detection started", "info")
         process.start(executable, detection_arguments(script, self.loaded_image, self.loaded_mask,
-                                                       self.output_path, self.loaded_case))
+                                                       self.output_path, self.loaded_case,
+                                                       18 + self.fold_combo.currentIndex if self.fold_combo.currentIndex else None))
 
     def tick_elapsed(self):
         if self.process is None:
@@ -1241,8 +1260,9 @@ class BranchForgeWidget(ScriptedLoadableModuleWidget):
                 self.show_log()
             else:
                 data = load_prediction(self.output_path, self.loaded_case)
-                self.apply_prediction(data, f"Pipeline  {elapsed:.1f} s", "mint")
-                self.notify(f"{len(data['daughters'])} branches found in {elapsed:.1f} s", "success", f"Complete in {elapsed:.1f} s. {len(data['daughters'])} branches ready to explore.")
+                paths, note = load_path_evidence(self.output_path, data)
+                self.apply_prediction(data, f"Pipeline  {elapsed:.1f} s", "mint", paths, note)
+                self.notify(f"{len(data['daughters'])} branches found in {elapsed:.1f} s", "success", f"Complete in {elapsed:.1f} s. {len(data['daughters'])} branches ready to explore. {note}")
         except Exception as exc:
             self.notify("Pipeline output rejected: " + str(exc), "error")
             self.run_log += "\n" + str(exc)
