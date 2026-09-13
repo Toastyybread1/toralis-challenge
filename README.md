@@ -13,6 +13,11 @@ guide](docs/AR_VIEWER.md), especially the iPhone Quick Look snapshot limitation.
 
 ## Set up (once)
 
+**Fresh Windows laptop?** See the [one-command Windows tutorial](docs/WINDOWS_QUICKSTART.md)
+and `scripts/Install-BranchForge.cmd`. This bootstrap installs Slicer and the
+detector environment without Git; the tutorial explains publication status,
+hardware limits, and loading your first scan.
+
 Install Python 3.12 or 3.13 and 3D Slicer (tested locally: 5.12.4).
 From this repository on Windows:
 
